@@ -122,7 +122,7 @@
  * -> hidden iframe response -> postMessage back to this page.
  * No CORS/XHR dependency and no additional frontend files.
  * ============================================================ */
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYa1Y3FHVkS99jaHYFkT818LDF71Q1GktmEDbDgBjhivOnxVkI8I3b-wBjLmNEybMN/exec';
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5gu1y5ePPs9_XkWxJQ9FQoc6yu30kRaSzgO-nwIYDoALA1wgvOcK7/exec';
 
 (function installKipGasDoPostClient(){
   'use strict';
@@ -268,15 +268,35 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYa1Y3FHVkS99j
     });
   }
 
+  function isTrustedGasMessageOrigin(origin){
+    try {
+      const url = new URL(String(origin || ''));
+      if (url.protocol !== 'https:') return false;
+      const host = url.hostname.toLowerCase();
+      return host === 'script.google.com' ||
+        host === 'script.googleusercontent.com' ||
+        /(^|[.-])script\.googleusercontent\.com$/.test(host);
+    } catch (_) {
+      return false;
+    }
+  }
+
   window.addEventListener('message', function(event){
     const data = event.data || {};
     if (data.type !== 'KIP_GAS_RPC_RESULT' || !data.id || !data.nonce) return;
+    if (!isTrustedGasMessageOrigin(event.origin)) return;
 
     const task = pending.get(String(data.id));
     if (!task) return;
     if (String(data.nonce) !== task.nonce) return;
-    if (!task.frame || event.source !== task.frame.contentWindow) return;
 
+    /*
+     * HtmlService renders the returned doPost page inside Google's own
+     * sandbox iframe. Therefore event.source is the INNER Apps Script
+     * sandbox window, not necessarily the outer iframe we created.
+     * Request id + cryptographic nonce + trusted Google origin are the
+     * correlation/security checks here.
+     */
     pending.delete(task.id);
     cleanupTask(task);
 
