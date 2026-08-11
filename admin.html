@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<!--
+  KIP GitHub Frontend
+  SETUP: replace PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE below with the same deployed /exec URL in all 3 HTML files.
+  Backend remains in Code.gs. No external JS/CSS files are required.
+-->
+
+<html data-server-theme="">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <title>Admin Control Center - Kampung Inggris Pontianak</title>
+  <link id="appFavicon" rel="icon" href="">
+  <style>
+    :root{
+      --navy:#0b2f6b;
+      --navy2:#154581;
+      --red:#cf0a2c;
+      --bg:#f4f7fb;
+      --surface:#ffffff;
+      --surface2:#f8faff;
+      --surface3:#edf3fb;
+      --text:#172238;
+      --muted:#718096;
+      --line:#dfe7f1;
+      --green:#11966a;
+      --amber:#d8890b;
+      --danger:#b4233b;
+      --glass:rgba(255,255,255,.88);
+      --dock:rgba(255,255,255,.90);
+      --shadow:0 18px 48px rgba(11,47,107,.10);
+      --shadow-soft:0 8px 24px rgba(11,47,107,.07);
+    }
+    html[data-theme="dark"]{
+      --navy:#9ac0ff;
+      --navy2:#c2d9ff;
+      --red:#ff637c;
+      --bg:#08111f;
+      --surface:#101b2d;
+      --surface2:#142238;
+      --surface3:#1b2b45;
+      --text:#eef4ff;
+      --muted:#9aa9bf;
+      --line:#2a3b54;
+      --green:#45d3a2;
+      --amber:#f2b75b;
+      --danger:#ff7d91;
+      --glass:rgba(8,17,31,.90);
+      --dock:rgba(16,27,45,.94);
+      --shadow:0 20px 55px rgba(0,0,0,.30);
+      --shadow-soft:0 9px 25px rgba(0,0,0,.20);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+    body{position:relative;overflow-x:hidden}
+    body:before{content:"";position:fixed;inset:0;z-index:-2;background:var(--bg)}
+    #watermark{position:fixed;z-index:-1;left:50%;top:54%;width:min(560px,58vw);max-width:72vw;transform:translate(-50%,-50%);opacity:.026;pointer-events:none;filter:saturate(.85)}
+    html[data-theme="dark"] #watermark{opacity:.042;filter:grayscale(.15) brightness(1.20)}
+    button,input,select,textarea{font:inherit;color:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    #root{min-height:100vh;padding-bottom:118px}
+    .page{max-width:1500px;margin:0 auto;padding:22px 26px 42px}
+    .topbar{position:sticky;top:12px;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 13px 11px 15px;margin-bottom:24px;background:var(--glass);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(20px);box-shadow:var(--shadow-soft)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-logo{width:72px;height:48px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:13px;padding:3px;flex:0 0 auto}
+    .brand-copy{min-width:0}
+    .brand-copy strong{display:block;color:var(--navy);font-size:14px}
+    .brand-copy span{display:block;color:var(--muted);font-size:9px;letter-spacing:.13em;font-weight:850;margin-top:2px;white-space:nowrap}
+    .top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .user-chip{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:11px;font-weight:800}
+    .user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(17,150,106,.12)}
+    .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 2px 22px;animation:rise .28s ease}
+    .eyebrow{font-size:10px;font-weight:950;letter-spacing:.15em;color:var(--red);text-transform:uppercase}
+    .hero h1{margin:5px 0 6px;color:var(--navy);font-size:34px;line-height:1.05;letter-spacing:-.04em}
+    .hero p{margin:0;color:var(--muted);font-size:13px;max-width:720px;line-height:1.55}
+    .week-pill{padding:10px 13px;background:var(--surface);border:1px solid var(--line);border-radius:13px;font-size:11px;font-weight:850;color:var(--navy);box-shadow:var(--shadow-soft);white-space:nowrap}
+    .btn{border:0;border-radius:12px;padding:9px 13px;font-weight:850;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .btn.primary{background:var(--red);color:#fff;box-shadow:0 8px 18px rgba(207,10,44,.18)}
+    .btn.soft{background:var(--surface3);color:var(--navy)}
+    .btn.outline{background:var(--surface);color:var(--navy);border:1px solid var(--line)}
+    .btn.danger{background:rgba(180,35,59,.08);color:var(--danger);border:1px solid rgba(180,35,59,.20)}
+    .btn-sm{padding:7px 10px;font-size:11px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:19px;box-shadow:var(--shadow-soft)}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:var(--surface3);color:var(--navy);font-size:9px;font-weight:950}
+    .badge.green{background:rgba(17,150,106,.11);color:var(--green)}
+    .badge.red{background:rgba(207,10,44,.09);color:var(--red)}
+    .badge.gray{background:rgba(113,128,150,.10);color:var(--muted)}
+    .badge.amber{background:rgba(216,137,11,.11);color:var(--amber)}
+    .meta{font-size:11px;color:var(--muted);line-height:1.45}
+    .link{color:var(--navy);font-weight:850;text-decoration:none}
+    .section-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .section-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .search{min-width:240px;max-width:420px;width:min(420px,100%);border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);outline:none}
+    .search:focus,.control:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,47,107,.08)}
+    .breadcrumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+    .crumb{border:0;background:var(--surface3);color:var(--navy);border-radius:10px;padding:7px 9px;font-size:10px;font-weight:850}
+    .crumb.current{background:transparent;color:var(--muted);cursor:default}
+    .crumb-sep{color:var(--muted);font-size:10px}
+    .selection-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}
+    .select-card{position:relative;text-align:left;padding:18px;border:1px solid var(--line);border-radius:19px;background:var(--surface);box-shadow:var(--shadow-soft);overflow:hidden;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;animation:cardIn .30s ease both}
+    .select-card:hover{transform:translateY(-4px);border-color:var(--navy);box-shadow:var(--shadow)}
+    .select-card:after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red);transform:scaleY(0);transform-origin:center;transition:transform .18s ease}
+    .select-card:hover:after,.select-card.active:after{transform:scaleY(1)}
+    .select-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--surface3);color:var(--navy);font-size:15px;font-weight:950;margin-bottom:13px}
+    .select-title{font-size:15px;font-weight:900;color:var(--navy);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .select-sub{color:var(--muted);font-size:11px;line-height:1.45}
+    .select-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
+    .select-count{font-size:11px;font-weight:900;color:var(--text)}
+    .select-arrow{color:var(--navy);font-weight:950;transition:transform .16s}
+    .select-card:hover .select-arrow{transform:translateX(3px)}
+    .record-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .generic-mobile{display:none}
+    .record-card{padding:16px;animation:cardIn .26s ease both}
+    .record-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .record-title{font-weight:900;color:var(--navy);font-size:14px}
+    .record-id{font-size:9px;color:var(--muted);font-weight:800;margin-top:3px}
+    .record-lines{display:grid;gap:5px;margin-top:12px}
+    .record-line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-top:6px;border-top:1px solid var(--line);font-size:10px}
+    .record-line b{color:var(--muted);font-weight:800}
+    .record-actions{display:flex;gap:6px;margin-top:13px;flex-wrap:wrap}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--shadow-soft)}
+    table{width:100%;border-collapse:collapse;min-width:820px;font-size:11px}
+    th{position:sticky;top:0;z-index:1;background:var(--surface3);color:var(--navy);text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+    td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;max-width:280px;overflow-wrap:anywhere}
+    tr:hover td{background:var(--surface2)}
+    .actions{white-space:nowrap}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin-bottom:15px}
+    .kpi{padding:16px}
+    .kpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+    .kpi strong{display:block;color:var(--navy);font-size:27px;margin-top:5px}
+    .week-card{padding:18px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:18px;margin-bottom:15px}
+    .week-big{font-size:20px;font-weight:950;color:var(--navy);margin:6px 0}
+    .week-actions{display:flex;align-items:end;gap:7px}
+    .intro{padding:18px}
+    .intro h3{margin:0 0 6px;color:var(--navy)}
+    .intro p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+    .year-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+    .year-tab{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:10px;font-weight:900;transition:.15s}
+    .year-tab:hover,.year-tab.active{background:var(--navy);color:var(--surface);border-color:var(--navy);transform:translateY(-1px)}
+    html[data-theme="dark"] .year-tab.active{color:#07111f}
+    .day-groups{display:grid;gap:12px}
+    .day-group{padding:15px}
+    .day-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .day-group-head h3{margin:0;color:var(--navy);font-size:14px}
+    .day-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:9px}
+    .dock-wrap{position:fixed;left:0;right:0;bottom:max(12px,env(safe-area-inset-bottom));z-index:80;display:flex;justify-content:center;pointer-events:none;padding:0 10px}
+    .dock{pointer-events:auto;max-width:calc(100vw - 20px);display:flex;align-items:flex-end;gap:5px;padding:8px 9px 7px;background:var(--dock);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(22px);box-shadow:0 18px 55px rgba(0,0,0,.17);overflow:visible}
+    .dock-item{position:relative;width:55px;height:55px;border:0;border-radius:16px;background:var(--surface);color:var(--navy);display:flex;align-items:center;justify-content:center;flex:0 0 auto;transform-origin:center bottom;transition:transform .12s ease,background .16s ease,color .16s ease,box-shadow .16s ease;box-shadow:0 5px 13px rgba(11,47,107,.10)}
+    .dock-item:hover{box-shadow:0 10px 22px rgba(11,47,107,.16)}
+    .dock-item.active{background:var(--navy);color:var(--surface)}
+    html[data-theme="dark"] .dock-item.active{color:#07111f}
+    .dock-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;position:relative;background:linear-gradient(145deg,var(--surface2),var(--surface3));border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 5px 12px rgba(11,47,107,.08);transition:transform .16s ease,box-shadow .16s ease,background .16s ease}.dock-icon svg{width:23px;height:23px;display:block;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}.dock-item:hover .dock-icon{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 8px 18px rgba(11,47,107,.13)}.dock-item.active .dock-icon{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 8px 18px rgba(0,0,0,.12)}html[data-theme="dark"] .dock-icon{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 5px 14px rgba(0,0,0,.18)}
+    .dock-dot{position:absolute;width:5px;height:5px;border-radius:50%;bottom:-5px;background:var(--red);opacity:0;transition:.15s}
+    .dock-item.active .dock-dot{opacity:1}
+    .dock-tip{position:absolute;bottom:68px;left:50%;transform:translateX(-50%) translateY(5px);padding:5px 8px;border-radius:8px;background:var(--text);color:var(--surface);font-size:9px;font-weight:850;white-space:nowrap;opacity:0;pointer-events:none;transition:.14s}
+    .dock-item:hover .dock-tip{opacity:1;transform:translateX(-50%) translateY(0)}
+    .field label{display:block;font-size:10px;font-weight:900;color:var(--muted);margin-bottom:5px}
+    .control{width:100%;border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:9px 10px;outline:none}
+    .control[readonly],.control:disabled{opacity:.72;background:var(--surface2)}
+    textarea.control{min-height:92px;resize:vertical}
+    .drawer-backdrop{position:fixed;inset:0;z-index:110;background:rgba(5,14,28,.52);backdrop-filter:blur(3px);animation:fade .16s}
+    .drawer{position:absolute;right:0;top:0;height:100%;width:min(650px,94vw);background:var(--surface);box-shadow:-24px 0 70px rgba(0,0,0,.24);display:flex;flex-direction:column;animation:slide .22s ease}
+    .drawer-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+    .drawer-head h3{margin:0;color:var(--navy)}
+    .drawer-body{padding:18px;overflow:auto;flex:1}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+    .full{grid-column:1/-1}
+    .drawer-foot{padding:14px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:var(--surface)}
+    .empty,.loading,.error{padding:38px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:18px;color:var(--muted);animation:rise .22s ease}
+    .error{color:var(--danger);border-color:rgba(180,35,59,.35);background:var(--surface)}
+    .spinner{display:inline-block;width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .65s linear infinite;vertical-align:-3px;margin-right:6px}
+    .toast{position:fixed;right:18px;top:18px;z-index:150;max-width:380px;padding:11px 14px;background:var(--text);color:var(--surface);border-radius:12px;font-size:11px;font-weight:850;box-shadow:0 16px 36px rgba(0,0,0,.2);animation:toastIn .22s ease}
+    .toast.error{background:var(--danger);color:#fff}
+
+    /* OVERVIEW PRINT ANALYTICS */
+    .analytics-shell{display:grid;gap:14px;margin-bottom:15px}
+    .analytics-filterbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 15px}
+    .analytics-filtergroup{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}
+    .analytics-filtergroup .field{margin:0;min-width:170px}
+    .analytics-filtergroup .field.date-field{min-width:155px}
+    .segment{display:flex;align-items:center;gap:4px;padding:4px;background:var(--surface3);border:1px solid var(--line);border-radius:13px}
+    .segment button{border:0;background:transparent;color:var(--muted);border-radius:9px;padding:8px 11px;font-size:10px;font-weight:900}
+    .segment button.active{background:var(--surface);color:var(--navy);box-shadow:var(--shadow-soft)}
+    .date-nav{display:flex;align-items:center;gap:5px}
+    .analytics-kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px}
+    .analytics-kpi{padding:16px;position:relative;overflow:hidden}
+    .analytics-kpi:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--surface3)}
+    .analytics-kpi.printed:after{background:var(--green)}
+    .analytics-kpi.pending:after{background:var(--amber)}
+    .analytics-kpi.rate:after{background:var(--navy)}
+    .analytics-kpi .kpi-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+    .analytics-kpi .kpi-value{display:block;color:var(--navy);font-size:30px;font-weight:950;margin-top:7px;letter-spacing:-.03em}
+    .analytics-kpi .kpi-note{margin-top:4px;color:var(--muted);font-size:10px}
+    .analytics-charts{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.65fr);gap:12px}
+    .analytics-chart-card{padding:16px;min-width:0}
+    .chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .chart-head h3{margin:0;color:var(--navy);font-size:14px}
+    .chart-head p{margin:3px 0 0;color:var(--muted);font-size:10px;line-height:1.4}
+    .chart-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:9px;font-weight:800}
+    .legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+    .legend-dot.printed{background:var(--green)}
+    .legend-dot.pending{background:var(--amber)}
+    .trend-wrap{width:100%;overflow:hidden}
+    .trend-svg{display:block;width:100%;height:auto;min-height:230px}
+    .trend-grid{stroke:var(--line);stroke-width:1}
+    .trend-axis-text{fill:var(--muted);font-size:9px;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+    .trend-line{fill:none;stroke:var(--red);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .trend-point{fill:var(--surface);stroke:var(--red);stroke-width:2}
+    .trend-area{fill:var(--red);opacity:.06}
+    .comparison-chart{display:grid;gap:11px}
+    .comparison-row{display:grid;grid-template-columns:minmax(100px,150px) minmax(100px,1fr) 58px;align-items:center;gap:9px}
+    .comparison-label{font-size:10px;font-weight:850;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bar-track{height:10px;border-radius:999px;background:var(--surface3);overflow:hidden}
+    .bar-fill{height:100%;border-radius:inherit;background:var(--navy);min-width:0}
+    .comparison-value{text-align:right;color:var(--navy);font-size:10px;font-weight:950}
+    .completion-list{display:grid;gap:12px}
+    .completion-row{display:grid;gap:6px}
+    .completion-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px}
+    .completion-top strong{color:var(--text);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .completion-top span{color:var(--muted);font-weight:850;white-space:nowrap}
+    .completion-track{height:11px;background:var(--surface3);border-radius:999px;display:flex;overflow:hidden}
+    .completion-printed{height:100%;background:var(--green)}
+    .completion-pending{height:100%;background:var(--amber)}
+    .analytics-empty{padding:26px;text-align:center;color:var(--muted);font-size:11px}
+    .analytics-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:9px;margin-top:8px}
+    .system-summary{margin-top:15px}
+    .system-summary-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .system-summary-title h3{margin:0;color:var(--navy);font-size:13px}
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fade{from{opacity:0}}
+    @keyframes slide{from{transform:translateX(22px);opacity:.7}}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes toastIn{from{opacity:0;transform:translateY(-6px)}}
+    @media(max-width:1000px){
+      .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .analytics-charts{grid-template-columns:1fr}
+      .selection-grid{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}
+      .brand-copy span{display:none}
+      .dock-item{width:51px;height:51px}
+    }
+    @media(max-width:700px){
+      .generic-mobile{display:grid}
+      .analytics-filterbar{align-items:stretch}
+      .analytics-filtergroup{width:100%}
+      .analytics-filtergroup .field{flex:1;min-width:140px}
+      .segment{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+      .segment button{width:100%}
+      .date-nav{width:100%}
+      .date-nav .btn{flex:1}
+      .analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .analytics-chart-card{padding:13px}
+      .comparison-row{grid-template-columns:minmax(90px,120px) minmax(80px,1fr) 48px}
+      .generic-desktop{display:none}
+      #root{padding-bottom:105px}
+      .page{padding:10px 10px 30px}
+      .topbar{top:7px;border-radius:17px;margin-bottom:17px;padding:8px 9px}
+      .brand-logo{width:59px;height:41px}
+      .brand-copy strong{font-size:12px}
+      .brand-copy span{display:none}
+      .user-chip{display:none}
+      .top-actions{gap:5px}
+      .top-actions .btn{padding:7px 9px;font-size:10px}
+      .hero{align-items:flex-start;flex-direction:column;margin-bottom:17px}
+      .hero h1{font-size:27px}
+      .week-pill{font-size:10px}
+      .kpis{gap:8px}
+      .kpi{padding:12px}
+      .kpi strong{font-size:23px}
+      .week-card{grid-template-columns:1fr;padding:14px}
+      .week-actions{display:grid;grid-template-columns:1fr auto}
+      .section-toolbar{align-items:stretch}
+      .section-tools{width:100%}
+      .search{min-width:0;max-width:none;width:100%}
+      .section-tools .btn{flex:1}
+      .selection-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .select-card{padding:13px;border-radius:15px}
+      .select-icon{width:35px;height:35px;font-size:13px;margin-bottom:9px}
+      .select-title{font-size:12px}
+      .select-sub{font-size:9px}
+      .select-foot{margin-top:10px}
+      .record-grid{grid-template-columns:1fr}
+      .table-wrap{display:none}
+      .day-items{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .full{grid-column:auto}
+      .drawer{width:100vw}
+      .drawer-body{padding:13px}
+      .dock-wrap{justify-content:flex-start;overflow:hidden;padding:0 7px}
+      .dock{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;border-radius:18px;scrollbar-width:none}
+      .dock::-webkit-scrollbar{display:none}
+      .dock-item{width:48px;height:48px;border-radius:14px}
+      .dock-tip{display:none}
+      .year-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+      .year-tabs::-webkit-scrollbar{display:none}
+      .breadcrumbs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+      .breadcrumbs::-webkit-scrollbar{display:none}
+    }
+    @media(max-width:420px){
+      .selection-grid{grid-template-columns:1fr 1fr}
+      .select-sub{display:none}
+      .brand-copy{display:none}
+      .topbar{justify-content:space-between}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+    }
+  </style>
+<script>
+/* ============================================================
+ * KIP GITHUB -> GOOGLE APPS SCRIPT doPost CLIENT
+ * Edit only this URL after deploying Code.gs as a Web App.
+ *
+ * Transport:
+ * GitHub page -> hidden HTML form POST -> GAS doPost(e)
+ * -> hidden iframe response -> postMessage back to this page.
+ * No CORS/XHR dependency and no additional frontend files.
+ * ============================================================ */
+const GAS_WEB_APP_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+(function installKipGasDoPostClient(){
+  'use strict';
+
+  const REQUEST_TIMEOUT_MS = 60000;
+  const pending = new Map();
+  let sequence = 0;
+
+  function backendUrl(){
+    const value = String(GAS_WEB_APP_URL || '').trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec(?:\?.*)?$/i.test(value)) {
+      throw new Error('Set GAS_WEB_APP_URL to your deployed Apps Script /exec URL.');
+    }
+    return value.split('?')[0];
+  }
+
+  function normalizeError(error){
+    if (error instanceof Error) return error;
+    const message = error && error.message
+      ? String(error.message)
+      : String(error || 'Unknown Apps Script error');
+    const out = new Error(message);
+    if (error && error.name) out.name = String(error.name);
+    return out;
+  }
+
+  function randomNonce(){
+    try {
+      if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+        const bytes = new Uint32Array(4);
+        window.crypto.getRandomValues(bytes);
+        return Array.from(bytes, value => value.toString(36)).join('');
+      }
+    } catch (_) {}
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  function hiddenInput(name, value){
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value == null ? '' : String(value);
+    return input;
+  }
+
+  function cleanupTask(task){
+    if (!task) return;
+    clearTimeout(task.timer);
+    if (task.form && task.form.parentNode) task.form.parentNode.removeChild(task.form);
+    if (task.frame && task.frame.parentNode) task.frame.parentNode.removeChild(task.frame);
+  }
+
+  function rpc(method, args, success, failure, userObject){
+    let url;
+    try {
+      url = backendUrl();
+    } catch (error) {
+      if (typeof failure === 'function') failure(normalizeError(error), userObject);
+      return;
+    }
+
+    const id = 'kiprpc_' + Date.now().toString(36) + '_' + (++sequence).toString(36);
+    const nonce = randomNonce();
+    const frameName = 'kip_rpc_frame_' + id.replace(/[^A-Za-z0-9_]/g, '_');
+    const mount = document.body || document.documentElement;
+
+    const frame = document.createElement('iframe');
+    frame.name = frameName;
+    frame.title = 'KIP GAS Request';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.tabIndex = -1;
+    frame.style.cssText = 'position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;border:0;opacity:0;pointer-events:none;';
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = frameName;
+    form.acceptCharset = 'UTF-8';
+    form.style.display = 'none';
+    form.appendChild(hiddenInput('kipRpc', '1'));
+    form.appendChild(hiddenInput('method', String(method || '')));
+    form.appendChild(hiddenInput('args', JSON.stringify(Array.isArray(args) ? args : [])));
+    form.appendChild(hiddenInput('requestId', id));
+    form.appendChild(hiddenInput('nonce', nonce));
+    form.appendChild(hiddenInput('origin', window.location.origin));
+
+    const timer = setTimeout(() => {
+      const task = pending.get(id);
+      if (!task) return;
+      pending.delete(id);
+      cleanupTask(task);
+      const error = new Error(
+        'Apps Script request timed out. Check GAS_WEB_APP_URL, the latest Web App deployment, and its access permission.'
+      );
+      if (typeof task.failure === 'function') task.failure(error, task.userObject);
+    }, REQUEST_TIMEOUT_MS);
+
+    const task = { id, nonce, frame, form, timer, success, failure, userObject };
+    pending.set(id, task);
+
+    try {
+      mount.appendChild(frame);
+      mount.appendChild(form);
+      form.submit();
+      // The form itself is no longer needed after the browser has submitted it.
+      setTimeout(() => {
+        if (form.parentNode) form.parentNode.removeChild(form);
+      }, 0);
+    } catch (error) {
+      pending.delete(id);
+      cleanupTask(task);
+      if (typeof failure === 'function') failure(normalizeError(error), userObject);
+    }
+  }
+
+  function createRunner(success, failure, userObject){
+    return new Proxy({}, {
+      get(_target, property){
+        if (property === 'withSuccessHandler') {
+          return function(handler){ return createRunner(handler, failure, userObject); };
+        }
+        if (property === 'withFailureHandler') {
+          return function(handler){ return createRunner(success, handler, userObject); };
+        }
+        if (property === 'withUserObject') {
+          return function(value){ return createRunner(success, failure, value); };
+        }
+        if (property === 'then') return undefined;
+        return function(){
+          rpc(
+            String(property),
+            Array.prototype.slice.call(arguments),
+            function(result){
+              if (typeof success === 'function') success(result, userObject);
+            },
+            function(error){
+              if (typeof failure === 'function') failure(error, userObject);
+            },
+            userObject
+          );
+        };
+      }
+    });
+  }
+
+  window.addEventListener('message', function(event){
+    const data = event.data || {};
+    if (data.type !== 'KIP_GAS_RPC_RESULT' || !data.id || !data.nonce) return;
+
+    const task = pending.get(String(data.id));
+    if (!task) return;
+    if (String(data.nonce) !== task.nonce) return;
+    if (!task.frame || event.source !== task.frame.contentWindow) return;
+
+    pending.delete(task.id);
+    cleanupTask(task);
+
+    if (data.ok) {
+      if (typeof task.success === 'function') task.success(data.result, task.userObject);
+    } else {
+      const error = normalizeError(data.error || 'Apps Script request failed.');
+      if (typeof task.failure === 'function') task.failure(error, task.userObject);
+    }
+  });
+
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+  Object.defineProperty(window.google.script, 'run', {
+    configurable: true,
+    get(){ return createRunner(null, null, null); }
+  });
+})();
+</script>
+</head>
+<body data-app-url="index.html" data-initial-token="">
+  <img id="brandAsset" class="hidden" alt="" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwICQsJCAwLCgsODQwOEh4UEhEREiUbHBYeLCcuLisnKyoxN0Y7MTRCNCorPVM+QkhKTk9OLztWXFVMW0ZNTkv/2wBDAQ0ODhIQEiQUFCRLMisyS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0v/wgARCAC0AQQDASIAAhEBAxEB/8QAGwAAAgMBAQEAAAAAAAAAAAAAAAYDBAUCAQf/xAAZAQACAwEAAAAAAAAAAAAAAAAAAgEDBAX/2gAMAwEAAhADEAAAAfavVSvrWZKUkM8AW8czNFNXR6VhOjZ18NzbLKA+DzIlryYlvaqM2vKrNKqYW6uSuGVDTXbKgFzqiBsaqkLP0jpGdqH7AVk6pbqVdkkjkJeAgt4uRg9c19cC7D6+x57ZxwCVye+6LE+PoZVe6VvzdKzCLjGuSqwBpqAsBXLkBMQBAwL/AHE/RyMyXKVS3Uq7JJHIS8K+wpviAE3DhksT88AbIAAYG+qFvXuXoRpbCldnCLjGuOqwBpqHZJdq21PPTPao4bsk6agB1dyIyXY1S3Up7R74DWK4EE0LNNelIFnJAAAAFdoV108c6+RFzaA+AXGNcdVgDTUOyTsoziK8FL3lbrm+sD1odS8ZLlSpbqU9oD0bwliA3cL2Ueyras5AAQAAK7QsRfo5HXRa0kM04xcY1x1WANNQAAAAABr5z1W1oDPanVLdSrskkchLGsPag2OmAu263IjG2PZAfAAALLMrxfl6U1ZdTNOD84XGNcdVgDTUA3LKiP8A2jfP9dw9Wa1kKnAATqlupV2SSOQl4oXyzjIZp5lfYO+AZ1nVmmzkgE1CuyqJdt5ElQsdCOQyi4xrjqsAaah2SXattQDPaAAAAAAnVLdSrskkchLwBbxaya9ri68YBOgNKtNNTth7KjdyKtXaieMo24Jirr16cS8LjCvKLAGmodkl2rfUAz2AAAAAAV+Va68MHHSNB9Aj6QiHwUteS7Kl6Myw+LpA0cK8hDLxl5oNPWCwrMPi3O0Mca3ZDW8W7Um91AvKNnmFFIw9JWoDFHiYwPJCIyjd2vbFysptngycFp6JU9Tc8mE1qlsRKj6z+zC7TaZQyM5srQJr5DZBUm3OQWb+9yCtnunjFPIbaqibsb/EiYxaXQZuE31YODSElW682E6GlHJE+Fd99E3sEsMz4FGyUa+i2TwT2c5ZveXV03MrVyppmv0L5FVY0aS7G0pXXwrfvtdN+vp5mm2Ouq6lBdTaZ+g2Jc57iXcyHo+CKcAAAgAJnAIg6AmT0CIuwDqMA97AK8oE8TARB2AEgBWmAmOcCK/oE9gEf//EACoQAAEDAwMEAQUBAQEAAAAAAAMBAgQABRASEzQRFCAzMiEjMDE1JBUi/9oACAEBAAEFApJyofuDV3BqHILrzNPtD7g1dwau4NUBSvXCr0TuN9NchzRzSjcMiEbi6FeNvdHruj13R67o9d0ekmSEptyOlBuY3Uio5MS+Tgfsw5UahyqYmBsUjxMQbMTNxaFpOQj+hJGxJbb36DYvPx/BElujuY5HtqXycD9mLibwt4NLcnYR0qI5GBluaqQ/oeOz/Xi8/H8NqkdHVL5OB+yjEQQ3OVzsRA7xfCaDfEEiNNIkDfQGbhI24TN5+OWAKRO0PTxvZ4McrHMdrZL5OB+yp5twmP3UUOyLxkoTuu01AjBVD5vPxzbeHSp1S4xED4W52qJL5OB+yYbZFm3g1O8ohdhy/WpZkKKGqrGxefjm28PFy4ebVxZfJwi9FOZxn4ENSkY1GN8rjyEhqoIPJzefjm28PF2MiMzbU0xJfJ8reHQPzuPIZ/Og8nN5+OY1wUAv+s6iXMzkcquXCJ1UTNscvk+VuP8AguPIZ/Og8nN5+P4baHcPUvk4T6qQbhOwi9FjG3h+XTvXpN0gVvZOCRCjxefj+AInGfHC0Aql8nA/ZPDrHmIbZJ5OXsiVq7x4R7QsXn4+TWq6gW4pKABgG4l8nA/ZUsOyXNvPqb43HkNiCWLB5Obz8c28Anxe2BSAElIiJ4y+TgfsqYHeFljlY4JEKPwuPIZ/Og8nN5+Obbw/OXycD9mJwdsuYJ9omXORiSiOMZJT0jR3uEZjke3F5+Obbw/OXycD9mJAt4Sp0XME+6Orico6XdcPQ+tD60Pr7qMt8gzi1efjm28Pzl8nA/Zm4h0uyEiiIxyPbcSaiK77dCYx8Kuv2Ir9NIvVLz8c23h+fQTnK0CLtDpEDqrcZqc5ra/8vb/npBiWtIVXSHrqa2nMHSNGqP2WUzbc3bZS7TaVomV9ET7ZUcMDEYyO+tgVK4Yka5HIrmtpHtWlVEpFRa3GI6kIgbhACpzGJtCG9wyIvVJD/wDVcjbq2xesOIBp3WtytkRv6h/6125JJG/b4xdm2R4qykjR2gPV25F4/QJOuFal0xhCfcCsiMGaSfajx4iyWxY6RzXj9HjtAKW9SW0KubaowgmoTNse1vT7cdREu5ejHikpHtptUaMPeHCFuVaV+zDjdy+LEZGrX21xa7ublcubOjduQA961x5LWg2mkM1NLbtyLz+psbbS2N1xYp+zeRotT4y/88MlnbIJpT3f6NIFAkuXRIcN6Dt8h8YjLbqWJojsKoQFc+OIjlTqiDABANC2mBGNBhGKhjCJznI2iBEZBBGGiNjve7aMjGNG0wAEoIhDSiAGVXsCelY1WDEwSGGElDAEFIqOosUJVEEYUIwJ6eAREcEbhogxNdEjIrenQjEJOYmxMojtDABdLccDojhv1jqWumXLKho4PTU6Og6gx0alXLjweLUkm0GO5Qlxc/bv7sK38ajk2hBcoi4ufseqzDtajWkHuzgQ2BdRW6xxj9ssqR3KiZtjpzUdcZAlC8Hpq5+qJxquPHg8Wri/U8zDbcMm4Crj75oNl9v41XIlFYbahE3AVc/Z9YUhqo5NpmvJBMJQxMHnaZreNhKROiUQbSI1EalPY16MajG0oRq9zUc0Y2Dw8THq9qPRjGsSnBG57kRyDEweCCYRXjYRGNRjf//EACcRAAEDBAEDBQADAAAAAAAAAAEAAhEDEBIxIQQgMhMzQUJRImFi/9oACAEDAQE/AWNbiOEWNjVunp5u5WDfxdSWtEAXwdEix0pUqVkUDNmeIR0gJ4VNmDYTnBokp7i90m9L2nWdrtFmeIR0ulp/c26mpJxF6UzwEWPpgx82dqzd2duwTPEWAAEBVqmDZ7Ol9xNJLX2dqzVkETN2eIsDKqMzbCIgwb0HBr5Ka4APFna7WizPEI6XS1PobdTT+4v07Q50FF2YcY1Z2rASsVjdniEdJpLTITHBwkLaq08HRag9rHyU2qwNd/dnas3fazxCOrdNUg4m1an6jUVisV8o6s3fbkUXFEwp5WZWZUqbSpU2lSptiQoWJQCDVCxUICFCjlYqFjwoUGznhrefxDfK/nn/AJR3wm4nH9Ttpz3eiFS8wqnmVRaAzn5ThBhMxLWgqr5lUGgM5+U4YmEz2xG7TbIxFpNpvJtJtJW1Jt//xAAkEQABAwQCAgMBAQAAAAAAAAABAAIREBIgMSEyAxMwQVFAYf/aAAgBAgEBPwGpNBW4faIgpnZQFAUBFgKc23E4bCO04ymdqyKOEjBxoBhM0Z2p5dU8ZkUdvAYFGjO1HiQvW5NECh3gMCOFB4ozti90CMHUaala1RnajnWr2o+Q/AKWk6VjqM7U8uvgNAU3a9kIvIUy1M7U8usSyE1sprbkWwJRYrFZ9q39RQbpFsKP9QE8lW8wrVbS+eEHwFci+U58q8IPhXfqc6UHaV/EK8bQd+q/lF8wg4TKOf2igjUI/wAv/8QANRAAAQIDBQcDAwQBBQAAAAAAAQACAxESECAhMXETIjJBUYGRMDNhBHKCI0KhsVIUQ2KSwf/aAAgBAQAGPwJ4D3AAr3HeV7jvKb+o7O5Jp3nL3HeV7jvK9x3lFznktyxtmVE2b9nRzKnOITL5Ujv6lVNth0OLZnkvdf5Xuv8AK91/le6/yvdf5XulY0u7KUQUfPJTBmLYmtrdbSTkEXHtaGtzKDRkLWsgiZ4ittFh7wwDc01xaQAjIjaSwVJyf/dsLU+j1ZzCDmmYNkTW1utuyHe5tDm7LS42iJs9xBp5Egu6oyI4UFD3aZmYwthan0ti7I5WRNbW62FxRcczbL9ozu4cQxCo+lh7st8HBcwZEYhUh1MxmtpGAwwbL+7YWpuTZDcQvad4W+xzdRcDhmMUHDmJqJra3WykcLbgHPneJhGk0hbarlNMrAkbkLU3Gd7MUIkPBpzHS4z4wUTW1uqw4jlc2pyGV+JtMDPmLGNZmFDqzlbC1Nxne1/a5+RUTW0FVOtDBzQa3IX+y2205TlJNuQtTcZ3tEIZnE3GfOKia36zm70Oy/BNuQtTcDKAZfK9oeVuhrVNxmTbIJrOgkomt/ZO/H0Oy/AptyFqfSqPCzGyJrcpeMbZjMIO5877n8NOC2Oz5SnNMiYuTXjnbC1Po0sGKDG97ImtrdVWOJtzHhOd97W4h2NjIZ3U1k5ytham/ugnRb+4P5VLBbE1tbrYR+04i5s3ZjK92W2INdM8025C1NxrnQ2knqF7TPCwhs8LC7E1tbrZhxDEXA5uYQcOd3svwTbkLU3Gd/Qia2t1tqHC65SeF1yZVTYT5aLZbB+UpprzCfLRTFsLU3Gd/Qia2t1tLfCkblJ4m2NbC55pxdUS4yxXCVwlcJTHNqBG7gqIpJBGE7IWpuM7+hE1tbrc2gyOdwPCDhkUdVCHRgsjxC0FwJkbIzerF9pUwoWpuM7+h+wuUiIc1wN8KQDKrKahPpNbxA1XJwX+1/CwYzwpShzUpQ59FKYHwpuazuFMBpW/Q3VblJb8LhHhY0BYhgXQL9rx5U3MhjUBbjYbtAF7bP8AqpEtYPCm0gj4W8QFg4HusTJYKmts+k7Ij3ci5H6mL1wTnnkE2P8A8s1MZFPeP81DAypq8rQlODnUyCfCBmxO1cm/c1N+1ODuNpE1X0n/AGjGjRJDqqh9S2npPOyH9qhd1FhO4msw0UR3Qz/hOfEdJoTXM+pAA+cU6I3HojGjRJAou/1DaOk81C7qHEbE3jyTHOzMlNmcj/ak+LQ+aa2oulzKiM6lyP08Xrh8FNhjniUGuhSY3FSOcPBfUdZTUV3+LCog+U4VUyHRGnFx5lOc8GUymvYDKc1C0H9rd4HZKgZmcvKf9PHqA6hBkCoz/wAkB0UP7VC7psVnC4Y/Cit6mX8J8KMDIoNgVuPytiOID+Ufp41TfkBBkCog8yoPdMrxY4AoU5TEkHkEgTyRdDaWRJ5dU2rsq9wP6qulrj1VT2AlSOSODWTR2NOOckQxoE80aGBs+i3A1rvhbxA1QraHL9NoapvoLh1KpNL/AIVLBIKqK1uq/SaBpZN7A4qTqXyVJG70UmNDQgIob3VTWhvysDNTewE9V+m0NUnhrpIB7AackGFs2jkqBJo6Kow2hbuSc0mQJTWw3VCdjndAnRIjsE2JDdgmu6ix5GYKhu5zxTPtFm0nxOTYs8SMrPyTLHO58kx5yNrftT2u4myQ1NjndEyIcrWaIMbwNQAyCcycplVTLjY5vUJ0OKCmw4QOaa3oLCDkT/4qeXJM+0WN+5Q9LPyTLGwwm1sk1iaeYwNjNFNvA5DU2NhjVAPhyaxDq3Cxmin+woEZFV0irrc32grcaBbXSKuq32gqQsk9s1ICQsk4TCk0SFlZYKuqk4TBW42Vk3NBKk4TCk0SFlRYC7qiDkUaGynZvtBQD2gyUmiQX//EACgQAQABAgUDBAMBAQAAAAAAAAERACEQMUFRYSCx8HGBodEwkcHh8f/aAAgBAQABPyGJ2ABxMa5kIZvQ1qZXBv0GMY31LFm4gyQGbSxiRkXeb5FRIUsgks/VGreblyIz4ouln4xvZhMurjOc5knuw0/eHMO1Ki17qGBJknUPwffFS4CVrIOcmxjmTFZP5inNmhWCDSsi1jkiHN96jYnWKghc6mfFO8hARpZpj4Dj8MWZV/1KhoKR6R+D742Rc7/Xosb2nQz3yliZvtV0mILinOpXXq9aUtJs29qvF7MgxefbHwHH4kdNXi7dI/B98NN7I3aZGUlxhlufWggt0WTM2O1DFIlljpnrR9rgCkNMEyhwq3BSwM9/dj4Djo57GGDuzgdGaewoMiEOgfg++F1/6uIKAJXKg1nd89ShUAsxM6VJIRmiGc6nWT2mYtN+jwHHR5HOAIAR0aaBLjcdFz7vl0D8H3qUlp/botDo+vrg0m3GTSktKQukERaKY0ubOePgOOjyOcSMmjD9/gwYszGasILQBpjnC6tijYgIOvs6yEFV3/bo8Bx0eRzihl/0DourU/L8Ah/jZ+Ds67yu/wC3R4Djog7ZXsrwv1UI50u0rZmF1xQMxsUQ2l+AOpc/T8HZ4R3/AG6PAcfijy/q06RCAZtqYwBixJCSNB6YGz15ObUS+9/Sswn5qpl1CMptpxegaQMw4+A4/CNmL9HNX0NVu9I/B96tb/U6IdWn96GS3UApiG8Q3/dcU3TF1Zm8f5UUwGJx8Bx1pwrsJpQff/xVjrd1eofg+9Z1AnQNyu+Ors6zGBLdXf8Abo8Bx0KKZlk1r/layZe2gIAHH4B+D74SMPEjofqEkrJX0bdPZ13Vd/26PAcdHkc/jH4PvjajV9HXouH/ACehy9jiaYAwgnNWcNPwimxhnFBGW7kY+A46PI5/GPwffEE881s0jBCMJ0XB0nk3wdeiFQTVh/Lk2zf50TMuZ/pSZXO9ZozA1w8Bx0eRz+Mfg+/RAno+vo0VczcrIJJKiQ2s9iif+/YSyYUuWKEQd6M61P1VsjeSiPISSvAcdHkc/gVxNcWWoEWxCv8Al6y1WgEmCEmnsTQsiu6K5R9xwgkoOBRG22QTSc/pRNLhu0lFFIQ3CiQ7cCl/FCgkDM7Ya/4aikFHRgrUn3AqZdhPakuADxSKL3BQM+pCv+EoVoYKU5IApqMum7FPw1xQ2SG60DKE3KZwHEnDJq980Gs/K/5QZEmprDmeW/eiNJCSk1wSPo0f30Usu0/tR88g2qxxnLKznh7wG1fE92pcWzlfOoqMpgc0Rcj6n6KydnIJ9VDJJcryOa8r0qadx6/8UL2TqnaC/gq+3ps9lAqLeYtKXRnq0UG2B+1eV6VKHh2Jas46bTucMEaUGVLZJZPusgRjUai+xZOzVnLJL9Fahn7BWsUeCauZqPTSlbEwj1manpcheqWqfZy/Z/lCyrrVQEjnKnN8VtnWstA3bBQmQkoMrL43FP8AaBQOlSQXOKRmNkg/fpRj5AK8jmvA9KifAImqP7Uy5NREaS6aP1TpVWtL+lR1wz3Va+ZEjWa20gf20YBkfSgeaClrOdEKEbDajdCkF86yOuaRvSuNu3bUIQnsyJpUvf1RE/VomCUQlQYIw3iaGhJRIC5QZ1yyEM6ajSyZqhrpuiok7R/2hElM41oRlzISUJeGd00ZCeQU5ctzHzVtk63T74HTAgWkAWykzFQKqIllFMFBlCmkrpKGpflz7aMkhuNcLpWagEpnGtKCGcCzFGIREtKBPChUT2PKrkVuwVZ2bYyrOjS+1XoQDGs6YG7kzSsCUW7FMgZReiJ3sFVwBH2oUZEDZivGbYWM1aRMqBrdGwyPRXed8OJEeqjMjX3MsfG5pljvCc8Ybyi3rR4XOe5rRcw+Z71kOWfdoE4CAqYNz9qtmOU6YcsxUeImbaNSAi6+rXEsYEnMBKL3LmW5XjNsPC4xnK9Fdx3we54unLlQ7WoGCpI+gw8rmrJfwdsYTPrn8oemExV97nD5nvTFEo/s/wApS5CRrnrNl+iH9Val/VTHs1XogIHKSiIIAgMAgCM3oSYMgwifzoaGEDIMJCEpo2JmBoVALnGBYayWlp20agf2jDJGF1CWNhKsI1owGKplNGAck6UOjGhX/9oADAMBAAIAAwAAABAEJTIMNxuxqvLJILvwIMGkJ/zmQCkIUgJAwIMgHHzzQl6kJUwALIJGMX3zyr9ykJDqMM0IEBRTzyTXSkIIIJ8wIM8HLzyl/wApCDIle8CDTDQw8l38pCV8888CDUFBAxEG8pDU8888afPtIXu1OOxgjR+KMBGa808Rf1feEZSATDjAhovFtNWSVm+DfzxhgAcgcBhAc9d9898A/8QAJBEBAAIBAwMFAQEAAAAAAAAAAQARMRAhQVGhsSBhcYGRwdH/2gAIAQMBAT8QdtMHEuNn5pumBPYfkpct9uNN8Ecoe8Gy5tUtLS3WAQNHbHiZoiBlhkfuIcRFHNpjdiGrpKoqZNAuU6Km9O2PEzS1/DTpkZ+daE3NdL6QCG1sfG2mT0QrRgTtjxEvaGg2JZ8uIqtuvgZcbe7pk0QO+hYvQKJ2x40AWYhs4zZDXjRUUmVexpk9NjenbHiZpYP0aXn6a0E2qA5uuH5pk0sVL9YEzr2x4maCMxBfNEBTGbhxpYGioYrk1pk9d2x4mbTpc4+dBoMmJtG5R5gGVUZvXGIYLa9AYiC1vNi7maThUG40v2gVhbjaLTRFBc5xxrTMjduWAuJTUo43l79otFl9q0C24VtFYiuIK0KiRYCBRUOCzhXeUpwnHX8VKW4QqXAH6mX5iLHLX1O/ncvmACn+eKisuIcvZPpxO7ZgT59Pb7iq+IPhWv3zG73inLpym2m8N40tVXtBRslruyyrcRVbZg3xFVtllW4iqtlVU4iq2z//xAAfEQEAAgMBAAMBAQAAAAAAAAABABEQITFBIFFhcTD/2gAIAQIBAT8QVuC4qJbCreAAtgzQmogEXPyn5T8p40VYewwrYFsCisfR5AguWJywodgnHAsYewnhireUKtZRlsSmpyxxwm3Apx7jsFvw5itMcsPUQ+ia7DtMe5VN/BHSN0VU5fEqHXD2EHuPDLQ1Oi07OWAFsp9RXCoqtuHsIlxKawrMIdI3Gscscfi9hg6vFDDZJZJU8SN5ScscfiAtdSmsuJKVQwaeSl1flwVAewO1aIQdNy3rsUK+RJp2lKzUA1MTZTpgW1eYQLcgEBAi17CCRHrk0XW6qaRA2+OzV/IJ/EbXQLjcDn9RuXwlhPkMlcVqwLcar9w3uEAjicRb/kNxsVnEW4Nx6/Cv9//EACgQAQABAwIFBAMBAQAAAAAAAAERACExQVEQYXGB8CCRobEwwfHR4f/aAAgBAQABPxC01AcCCv6Sv6SkGsNJRJNKOJjATM636Ff0lf0lf0lRevJBlt0PvicA6owBvVlSw+ObP9FX7TIdwUiyH23pQIWCRAmSCs5/VN8SuJCtk34zv83AsBF+9f0tf2tf0tf0tAf7afu+j7CiW5id7wpkvtB95ye1AUGVyJyePhcjj5HZxNgwjQKmKEhNHB5vxNqYRy3XkFCHEKdV1XmvGHRYJHIU7v1UUQaomE2s3BOAp2oCrEDIueVMStQ2jJwj1kblRRdYgRLBtAR934+E2/CNtlxj6H7oFwQ8I8PC5HHyOzjHc0HNtP29vRNxggJ4T9R6JPoEQoiwrLceVLBIkoqFJhc33pQn0EGhw7J7LkszaKcbaY3QkLZhB7c6McPCbfiZmtO817i/U58PC5HHyOzhdTD1DBUnpk3XigFttuad3+0AAACANPRBTE5ULvLST9UnTCTGgR3R0bbTTGcxwDYFiMsZin6wVJhEvbSgpjGxBTJyEG3Xj4Tb0BLEoTxTNI1vdQce76EYgqcxmnn9oEmvC5HHyOzhnoiMY1Xtj34uWQAMrtSgBtzXZ0MeqGiBmdMS1VLUSKTKZCUWYZTMUs6OCS0DRhGKCDj4Tb0Pk/bwPK0ISParRELjKRyb209F5JSvZR8RXhcjj5HZWJUvL37PuPRMXRA663t99PWWn5I4SSJso2cVvAzF6gcSy0YoWbsjc0ikoUSc6s8fCbeh8n7eKjkjqj6JZ8j4rwuRxSBQhO4zULoBhh/eNnFL+4e1Q3GD1+X1o2Uaz8aTOsVd0/uo4+E29D5P28TqoQHDier9eidWPvSj4K8LkesUAmJ8J3z7fg8vrWfxzXx/u9HhNvQCbVDauziHenQ93RFMdBLpNvilsdK5VzeIYS4G62KhIjrkF68LkeuFdyi939jv+Dy+teZ1r4/3ejwm34jzJAlw6X77cPC5HEQ5UButQ1MMDIjqPFfxAMiUFYDZ6Ge2vrIfGWC/UbRZpe9DepegsmYjnUXhhGE0Lq/cvahNvOQ5cfCbfhJuvF0dzoVjWXJC+V8xw8LkcfI7KzwFWM6p2z7+h1CwWxp2fU0AKEbia+oi2IW8AYwvitLtKQ4C48TAxBs5tGsQdkTx8Jt6km5R9xwlfFBUa+a6aO9WyTd7vuuvHwuRx8jspAIgjo0hmLpycnZ/Xo00st9nt9ery+tSIBAMISFu1fH+70eE29CChiiYQZ5HCZmVtz/KuSihB6fC5HHyOzhGZO+uvcfr0XXDH6eVYIy+paj09Pl9azeOa+P93o8Jt6Hyft/B4XI4+R2cGpyMqIxov36MY1BnGm98Pb0PSClhJ6Bdo9pM2MJvEWzTOfgbF5vHVT0NQLMJElqXBSm4jqNzj4Tb0Pk/b+DwuRx8js4xwDJGjh/XemsLI0TJ6M6xEc6X6P8A3gILjqDAE41pMYzUUP3Ff4jX8Br+I0VghIAUjHKHap4IRkhvE6yT7cPCbeh8n7fwIy+AqTcqTcpmT+KjjbEWxppe59VJuVJuVJuUpErydQpTpG3Joy1UN+T9zRLSCN9RL8RUm571ebGBBBDRsSwc0MsQxJ1Q/U+1KBo5J0z/ALTrSZOTXhNqSblSblSblfL+38E1cwha7maIu0QSs4tXjH6oIBe0rHIvwgByuXm0TNCFxAiF71mT0v8AUqawNqwrH4pgMyJcRm1ESkhKdOLZpFyAYqMEFJiCySX5tKhNhYtbJQIwHGd701I2AXWi1AEBh5YqOdcLI21qLdJ3KsumUyAPqK5rJAD83rkAMnyUkDGWI9ivHf1R3wW0jkUCSsAD3K5adHL3rkIgl+KueSIQfNGXvCSNXwjEil0mamj+vAGUEDu0CS8hLbpywOfSs3Sju6HdgpeQWbpCfb5UOwBDUcUxXvisfVPIJKORPwHzUN5P/VR76iXMxrV0nc5EAO0jQMZ/WiYj/gq1SyROpQZgyLpw79edECJBYUg+Up7XCUWMstgxSpk4FyDMQbl+lAaCEiMjRLwYfeiYBv8AWl69FLiMdfp0qzrFGwFptiIsTdcJsQZaV9UsfsMI8/Zp8EAQyDBjJP1StNQ4YGFVsE2CoXEgI7cwRufFRUIbs9qXydwhbKRGbNBrKjGW9++alsPRuJSnQlrAXznrndu+9WVQhZDSYpW7pgCj0mpCL3NF+lyc+tS6wr2Du/VSgmm0TMqzOu2nKiv5GTlle1u1G+Dudz5wnekMoyW8PhNOnpR7NCjgTBKWNWm4JCJMGgGCh01QlTYG+fuh0nUhDSu2PkohAgokiSoog6wwplfTJy6UMjiUtQkPiKgqpyZW6NEZrA+hDzgYBvV9Mb0CK+A+9ePyoroLsZRfp9utGkhY7SCkteQyxRMaoin/AHbhS0AE+9PjAUMIZB1VKfHmZIDAmiNCssCIQ1AwBR6SZ0CkIrsSYodS9HGAxgXRHapEKAETm1RaIAOcUWNcUpKAXlFt2z2oBSIxTczfWmpSJMK2LjQwjAHKBihvtILI5KRbrux2u3y01whdGYxPu0zvpgiyL1jVQtIGJ92gv3JAzMRM86DQNgjL3pUBEvkHYXigpmYX6lvQNwQsAyGdGnjrdDhrBUmS4diWWpwmF5eSEmkjmu8+ReEEuQyhMx71PpSQKWbDyKdTswlbKh7iGBYiajwvEh5MjUmGEL3O5atCywk+KSLGUU6ok0sKZBfqW7Vg5xFusPIqF7RGMBB7FZw1NBGPaodKMgC7fLu1JEKZkHpMUldQRbsNotU4oyzbLWrigeFmSi1qKEmUJvBijRyRuVzcsARSA5esRzDFkb0SMAR2kxTikyGhkQUbweFxDkrymymnGFwkSFtUeCagBKa9uHiedeHzcI2Y9yWP97UjJCK1WT2fqhk4Ew6vtV1QwrmLH6P/AGvJb8A/ZmrHzTDBcrej70gEZHDwI2ygmiGmFo+xwUUUwGAKBcCiCYyx2oYswkDmA1oo3mLjspT3tFCWKG2owUjKMCHEW0CW9XDmRd0L04oK84NSjup5fe6mGvKbOHnc1fBcPM868vm4ThKya2B7T70MWqoIMZhvepUSXe/0Q8OttqquHYDGZ6NT/leS34IhlWM10H3UPxqIkHMs3vVw5zObYfaOPEBRzG7k6ry9CxIBhGgYD6iREz6L84wFzuXq/ObIXe7fjPq6d5EZ6UYnciaKCwcDAGDhBA4DMO9H6OMAOF3KkG071yI7o4DIFSF5MNAMKBWSkHbI1vAf8wGUJmoOFSMjREFVBglzwDmCrkyYo6LKMJUWPgiV4xwPcsI4KeiUgUGJOjETX//Z">
+  <img id="watermark" alt="" src="">
+  <div id="root">
+    <div class="page">
+      <div class="loading"><span class="spinner"></span>Opening Admin Control Center...</div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+  <script>
+  (function(){
+    'use strict';
+
+    var body = document.body;
+    var root = document.getElementById('root');
+    var toastEl = document.getElementById('toast');
+    var brandAsset = document.getElementById('brandAsset');
+    var logo = brandAsset ? brandAsset.src : '';
+    var watermark = document.getElementById('watermark');
+    var favicon = document.getElementById('appFavicon');
+    var query = new URLSearchParams(window.location.search);
+    var serverTheme = query.get('theme') || document.documentElement.getAttribute('data-server-theme') || '';
+    var appUrl = new URL('index.html', window.location.href).href.split('?')[0];
+    var initialToken = query.get('token') || body.getAttribute('data-initial-token') || '';
+    if (!initialToken) {
+      try { initialToken = localStorage.getItem('kipStaffToken') || sessionStorage.getItem('kipStaffToken') || ''; } catch (_) {}
+    }
+
+    if (watermark) watermark.src = logo;
+    if (favicon) favicon.href = logo;
+
+    var savedTheme = '';
+    try { savedTheme = localStorage.getItem('kipTheme') || ''; } catch (themeReadError) {}
+    if (savedTheme !== 'light' && savedTheme !== 'dark') {
+      if (serverTheme === 'light' || serverTheme === 'dark') {
+        savedTheme = serverTheme;
+      } else {
+        savedTheme = 'light';
+        try {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) savedTheme = 'dark';
+        } catch (mediaError) {}
+      }
+    }
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    var NAV = [
+      ['Overview','overview','Overview'],
+      ['Branches','branches','Branches'],
+      ['Trainers','trainers','Trainers'],
+      ['Classes','classes','Classes'],
+      ['Levels','levels','Levels'],
+      ['Materials','materials','Materials'],
+      ['Users','users','Users'],
+      ['Print_Plan','print','Print Plans']
+    ];
+    var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+    var state = {
+      token: initialToken,
+      user: null,
+      boot: null,
+      section: 'Overview',
+      entity: null,
+      crud: null,
+      aux: {},
+      context: {},
+      view: 'root',
+      analytics: null,
+      analyticsPeriod: 'weekly',
+      analyticsDate: '',
+      analyticsBranchId: '',
+      analyticsRequestId: 0
+    };
+
+    var toastTimer = null;
+    var bootstrapTimer = null;
+
+    window.onerror = function(message, source, lineno, colno, error) {
+      var text = 'UI error';
+      if (message) text += ': ' + String(message);
+      showFatal(text);
+      return false;
+    };
+
+    function byId(id){ return document.getElementById(id); }
+    function str(value){ return value === null || value === undefined ? '' : String(value); }
+    function esc(value){
+      return str(value)
+        .split('&').join('&amp;')
+        .split('<').join('&lt;')
+        .split('>').join('&gt;')
+        .split('"').join('&quot;')
+        .split("'").join('&#39;');
+    }
+    function attr(value){ return esc(value); }
+    function errorText(error){
+      if (error && error.message) return String(error.message);
+      if (error === null || error === undefined) return 'Unknown error';
+      return String(error);
+    }
+    function render(html){ root.innerHTML = html; }
+    function empty(text){ return '<div class="empty">' + esc(text) + '</div>'; }
+    function busy(button,on,text){
+      if (!button) return;
+      button.disabled = !!on;
+      if (on) button.innerHTML = '<span class="spinner"></span>' + esc(text);
+      else button.textContent = text;
+    }
+    function toast(message,isError){
+      clearTimeout(toastTimer);
+      toastEl.textContent = str(message);
+      toastEl.className = 'toast' + (isError ? ' error' : '');
+      toastTimer = setTimeout(function(){ toastEl.classList.add('hidden'); },3000);
+    }
+    function showFatal(message){
+      render(
+        '<div class="page"><div class="error">' +
+          '<strong>Admin Control Center could not load.</strong>' +
+          '<div style="margin-top:8px">' + esc(message) + '</div>' +
+          '<button id="retryFatal" class="btn primary" style="margin-top:14px" type="button">Retry</button>' +
+        '</div></div>'
+      );
+      var retry = byId('retryFatal');
+      if (retry) retry.onclick = function(){ window.location.reload(); };
+    }
+    function renderLoading(text){
+      render('<div class="page"><div class="loading"><span class="spinner"></span>' + esc(text) + '</div></div>');
+    }
+    function currentTheme(){
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    }
+    function toggleTheme(){
+      var next = currentTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme',next);
+      try { localStorage.setItem('kipTheme',next); } catch (themeWriteError) {}
+      updateThemeButton();
+    }
+    function updateThemeButton(){
+      var button = byId('themeToggle');
+      if (button) button.textContent = currentTheme() === 'dark' ? 'Light' : 'Dark';
+    }
+    function returnToLogin(message){
+      var base = appUrl;
+      if (!base) {
+        base = window.location.href;
+        if (base.indexOf('?') >= 0) base = base.substring(0,base.indexOf('?'));
+      }
+      var target = base + '?page=login&theme=' + encodeURIComponent(currentTheme());
+      if (message) target += '&message=' + encodeURIComponent(message);
+      try {
+        window.top.location.href = target;
+      } catch (navError) {
+        window.location.href = target;
+      }
+    }
+    function logout(){
+      if (state.token && window.google && google.script && google.script.run) {
+        google.script.run.logoutStaff(state.token);
+      }
+      state.token = '';
+      try { localStorage.removeItem('kipStaffToken'); localStorage.removeItem('kipStaffUser'); sessionStorage.removeItem('kipStaffToken'); sessionStorage.removeItem('kipStaffUser'); } catch (_) {}
+      returnToLogin('Logged out.');
+    }
+    function isAuthError(message){
+      var lower = str(message).toLowerCase();
+      var words = ['session','login','account','role','access','expired','inactive'];
+      var i;
+      for (i=0;i<words.length;i++) {
+        if (lower.indexOf(words[i]) >= 0) return true;
+      }
+      return false;
+    }
+    function handleFailure(error){
+      var message = errorText(error);
+      if (isAuthError(message)) {
+        returnToLogin(message);
+        return;
+      }
+      showFatal(message);
+    }
+
+    function scriptRun(method,args,onSuccess,onFailure){
+      if (!window.google || !google.script || !google.script.run) {
+        onFailure(new Error('Google Apps Script doPost client is unavailable. Check GAS_WEB_APP_URL and the deployed Code.gs version.'));
+        return;
+      }
+      var runner = google.script.run
+        .withSuccessHandler(function(result){ if (onSuccess) onSuccess(result); })
+        .withFailureHandler(function(error){ if (onFailure) onFailure(error); else handleFailure(error); });
+      if (method === 'getAdminControlBootstrap') runner.getAdminControlBootstrap(args[0]);
+      else if (method === 'getAdminCrudData') runner.getAdminCrudData(args[0],args[1]);
+      else if (method === 'getAdminPrintingAnalytics') runner.getAdminPrintingAnalytics(args[0],args[1]);
+      else if (method === 'setActiveWeek') runner.setActiveWeek(args[0],args[1]);
+      else if (method === 'adminSaveRecord') runner.adminSaveRecord(args[0],args[1],args[2],args[3]);
+      else if (method === 'adminDeleteRecord') runner.adminDeleteRecord(args[0],args[1],args[2]);
+      else if (method === 'logoutStaff') runner.logoutStaff(args[0]);
+      else onFailure(new Error('Unknown client method: ' + method));
+    }
+
+    function loadBootstrap(){
+      if (!state.token) {
+        returnToLogin('Your Admin session is unavailable. Please login again.');
+        return;
+      }
+      renderLoading('Loading Admin Control Center...');
+      clearTimeout(bootstrapTimer);
+      bootstrapTimer = setTimeout(function(){
+        var loading = document.querySelector('.loading');
+        if (loading) {
+          showFatal('The Admin dashboard is taking too long to load. Check the deployment version and try again.');
+        }
+      },15000);
+      scriptRun('getAdminControlBootstrap',[state.token],function(data){
+        clearTimeout(bootstrapTimer);
+        state.boot = data || {};
+        state.user = state.boot.user || {};
+        showOverview();
+      },function(error){
+        clearTimeout(bootstrapTimer);
+        handleFailure(error);
+      });
+    }
+
+    function sectionLabel(section){
+      return section === 'Print_Plan' ? 'Print Plans' : section;
+    }
+    function sectionSubtitle(section){
+      var map = {
+        Overview:'Control the active week and manage every operational dataset from one workspace.',
+        Branches:'Manage branch master data and status.',
+        Trainers:'Branch-first filtering keeps trainer management clean and fast.',
+        Classes:'Drill down from branch to trainer before viewing assigned classes.',
+        Levels:'Manage curriculum level master data.',
+        Materials:'Browse the archive by year, month, week and level.',
+        Users:'Manage Admin and Material Maker accounts.',
+        Print_Plan:'Browse printing history through month, week, branch and trainer filters.'
+      };
+      return map[section] || 'Manage records.';
+    }
+    function prettyDate(value){
+      if (!value) return '-';
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return str(value);
+      return date.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    }
+    function prettyDateFull(value){
+      if (!value) return '-';
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return str(value);
+      return date.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    }
+    function weekLabel(value){
+      if (!value) return '-';
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return str(value);
+      var end = new Date(date.getTime());
+      end.setDate(date.getDate()+4);
+      return date.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) +
+        ' - ' + end.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    }
+    function dateParts(value){
+      if (!value) return {};
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return {};
+      return {year:date.getFullYear(),month:date.getMonth(),day:date.getDate()};
+    }
+    function mondayKey(value){
+      if (!value) return '';
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return '';
+      var day = date.getDay();
+      var diff = day === 0 ? -6 : 1-day;
+      date.setDate(date.getDate()+diff);
+      return date.getFullYear() + '-' +
+        String(date.getMonth()+1).padStart(2,'0') + '-' +
+        String(date.getDate()).padStart(2,'0');
+    }
+    function dayName(value){
+      if (!value) return '';
+      var date = new Date(str(value).substring(0,10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('en-US',{weekday:'long'});
+    }
+    function isHttpUrl(value){
+      var text = str(value).trim().toLowerCase();
+      return text.indexOf('http://') === 0 || text.indexOf('https://') === 0;
+    }
+    function uniqueValues(values){
+      var seen = {};
+      var out = [];
+      var i,key;
+      for (i=0;i<values.length;i++) {
+        key = str(values[i]);
+        if (!key) continue;
+        if (!seen[key]) {
+          seen[key] = true;
+          out.push(values[i]);
+        }
+      }
+      return out;
+    }
+    function findOption(options,id){
+      var i;
+      options = options || [];
+      for (i=0;i<options.length;i++) {
+        if (str(options[i].value) === str(id)) return options[i];
+      }
+      return null;
+    }
+    function optionName(label){
+      var parts = str(label).split(' · ');
+      return parts[0] || str(label) || '-';
+    }
+    function relationName(data,source,id){
+      var options = data && data.options ? data.options[source] : [];
+      var option = findOption(options,id);
+      return option ? optionName(option.label) : (id || '-');
+    }
+    function statusBadge(status){
+      var text = status || 'Inactive';
+      var cls = text === 'Active' ? 'green' : 'gray';
+      return '<span class="badge ' + cls + '">' + esc(text) + '</span>';
+    }
+
+    function shell(content,title,subtitle){
+      var active = state.section;
+      var week = state.boot && state.boot.activeWeek ? state.boot.activeWeek : {};
+      var weekHtml = '';
+      if (week.weekStart) {
+        weekHtml = '<div class="week-pill">Active Week - ' +
+          esc(prettyDate(week.weekStart)) + ' - ' + esc(prettyDate(week.weekEnd)) +
+          '</div>';
+      }
+      return '<div class="page">' +
+        '<header class="topbar">' +
+          '<div class="brand">' +
+            '<img class="brand-logo" src="' + attr(logo) + '" alt="Kampung Inggris Pontianak logo">' +
+            '<div class="brand-copy"><strong>Admin Control Center</strong><span>KAMPUNG INGGRIS PONTIANAK</span></div>' +
+          '</div>' +
+          '<div class="top-actions">' +
+            '<button id="themeToggle" class="btn soft btn-sm" type="button">Dark</button>' +
+            '<div class="user-chip"><span class="user-dot"></span>' + esc(state.user && state.user.username ? state.user.username : 'Admin') + '</div>' +
+            '<button id="logoutBtn" class="btn outline btn-sm" type="button">Logout</button>' +
+          '</div>' +
+        '</header>' +
+        '<section class="hero">' +
+          '<div><div class="eyebrow">Administrator Workspace</div><h1>' + esc(title || sectionLabel(active)) + '</h1><p>' + esc(subtitle || sectionSubtitle(active)) + '</p></div>' +
+          weekHtml +
+        '</section>' +
+        '<main>' + content + '</main>' +
+      '</div>' + dock(active);
+    }
+
+    function dockIcon(name){
+      var open = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">';
+      var close = '</svg>';
+      if (name === 'overview') return open + '<rect x="3.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="3.5" width="7" height="4.5" rx="2"></rect><rect x="13.5" y="10.5" width="7" height="10" rx="2"></rect><rect x="3.5" y="13" width="7" height="7.5" rx="2"></rect>' + close;
+      if (name === 'branches') return open + '<path d="M12 4v4"></path><rect x="8.5" y="2.5" width="7" height="4" rx="1.5"></rect><path d="M5 12V9h14v3"></path><rect x="2.5" y="12" width="5" height="5" rx="1.5"></rect><rect x="9.5" y="12" width="5" height="5" rx="1.5"></rect><rect x="16.5" y="12" width="5" height="5" rx="1.5"></rect>' + close;
+      if (name === 'trainers') return open + '<circle cx="9" cy="8" r="3"></circle><path d="M3.5 19c.8-3.5 2.8-5.2 5.5-5.2s4.7 1.7 5.5 5.2"></path><path d="m17.7 6.2.7 1.5 1.7.2-1.2 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.2-1.2 1.7-.2.7-1.5z"></path>' + close;
+      if (name === 'classes') return open + '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path><circle cx="9" cy="9" r="1.7"></circle><path d="M6.4 13c.5-1.5 1.4-2.2 2.6-2.2s2.1.7 2.6 2.2M14 8h4M14 11h4"></path>' + close;
+      if (name === 'levels') return open + '<path d="M4 18h5v-4h5v-4h6"></path><path d="M4 20V7"></path><circle cx="7" cy="16" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="18" cy="8" r="1"></circle>' + close;
+      if (name === 'materials') return open + '<path d="M6 3.5h8l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 20V5A1.5 1.5 0 0 1 6.5 3.5z"></path><path d="M14 3.5V8h4.5M8 12h7M8 15.5h7M8 19h4.5"></path>' + close;
+      if (name === 'users') return open + '<circle cx="9" cy="8" r="3"></circle><path d="M3.5 19c.8-3.6 2.7-5.2 5.5-5.2 1.4 0 2.6.4 3.5 1.2"></path><path d="M16 12.5l4 1.6v3.1c0 2.1-1.4 3.7-4 4.8-2.6-1.1-4-2.7-4-4.8v-3.1l4-1.6z"></path><path d="m14.7 17 1 1 1.8-2"></path>' + close;
+      if (name === 'print') return open + '<path d="M7 8V3.5h10V8"></path><rect x="5.5" y="14" width="13" height="6.5" rx="1.5"></rect><path d="M5.5 17H4.7A2.7 2.7 0 0 1 2 14.3v-3.1A2.7 2.7 0 0 1 4.7 8.5h14.6a2.7 2.7 0 0 1 2.7 2.7v3.1a2.7 2.7 0 0 1-2.7 2.7h-.8"></path><circle cx="18" cy="11.5" r=".7"></circle><path d="M8.5 17h7"></path>' + close;
+      return open + '<circle cx="12" cy="12" r="7"></circle>' + close;
+    }
+
+    function dock(active){
+      var html = '<div class="dock-wrap"><nav id="macDock" class="dock" aria-label="Admin menu">';
+      var i,item,activeClass;
+      for (i=0;i<NAV.length;i++) {
+        item = NAV[i];
+        activeClass = active === item[0] ? ' active' : '';
+        html += '<button type="button" class="dock-item' + activeClass + '" data-nav="' + attr(item[0]) + '" aria-label="' + attr(item[2]) + '">' +
+          '<span class="dock-tip">' + esc(item[2]) + '</span>' +
+          '<span class="dock-icon">' + dockIcon(item[1]) + '</span>' +
+          '<span class="dock-dot"></span></button>';
+      }
+      html += '</nav></div>';
+      return html;
+    }
+
+    function bindShell(){
+      var navButtons = document.querySelectorAll('[data-nav]');
+      var i;
+      for (i=0;i<navButtons.length;i++) {
+        navButtons[i].onclick = function(){ navigate(this.getAttribute('data-nav')); };
+      }
+      var themeButton = byId('themeToggle');
+      if (themeButton) themeButton.onclick = toggleTheme;
+      var logoutButton = byId('logoutBtn');
+      if (logoutButton) logoutButton.onclick = logout;
+      updateThemeButton();
+      setupDockMagnification();
+    }
+
+    function setupDockMagnification(){
+      var dockEl = byId('macDock');
+      if (!dockEl) return;
+      try {
+        if (window.matchMedia && window.matchMedia('(pointer:coarse)').matches) return;
+      } catch (mediaError) {}
+      var items = dockEl.querySelectorAll('.dock-item');
+      dockEl.onmousemove = function(event){
+        var i,rect,center,dist,power,scale,lift;
+        for (i=0;i<items.length;i++) {
+          rect = items[i].getBoundingClientRect();
+          center = rect.left + rect.width/2;
+          dist = Math.abs(event.clientX-center);
+          power = Math.max(0,1-dist/105);
+          scale = 1 + power*.34;
+          lift = -power*13;
+          items[i].style.transform = 'translateY(' + lift.toFixed(1) + 'px) scale(' + scale.toFixed(3) + ')';
+        }
+      };
+      dockEl.onmouseleave = function(){
+        var i;
+        for (i=0;i<items.length;i++) items[i].style.transform = '';
+      };
+    }
+
+    function navigate(section){
+      state.section = section;
+      state.entity = null;
+      state.crud = null;
+      state.aux = {};
+      state.context = {};
+      state.view = 'root';
+      if (section === 'Overview') showOverview();
+      else if (section === 'Trainers') loadTrainers();
+      else if (section === 'Classes') loadClasses();
+      else if (section === 'Materials') loadMaterials();
+      else if (section === 'Print_Plan') loadPrintPlans();
+      else loadGeneric(section);
+    }
+
+
+    function analyticsToday(){
+      var now = new Date();
+      return now.getFullYear() + '-' +
+        String(now.getMonth()+1).padStart(2,'0') + '-' +
+        String(now.getDate()).padStart(2,'0');
+    }
+
+    function analyticsDateObject(value){
+      var text = str(value || analyticsToday()).substring(0,10);
+      var date = new Date(text + 'T00:00:00');
+      if (isNaN(date.getTime())) date = new Date();
+      date.setHours(0,0,0,0);
+      return date;
+    }
+
+    function analyticsYmd(date){
+      return date.getFullYear() + '-' +
+        String(date.getMonth()+1).padStart(2,'0') + '-' +
+        String(date.getDate()).padStart(2,'0');
+    }
+
+    function analyticsPeriodLabel(data){
+      if (!data) return '';
+      if (data.period === 'daily') return prettyDateFull(data.rangeStart);
+      if (data.period === 'monthly') {
+        var monthDate = analyticsDateObject(data.rangeStart);
+        return monthDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+      }
+      return prettyDateFull(data.rangeStart) + ' - ' + prettyDateFull(data.rangeEnd);
+    }
+
+    function bindAnalyticsControls(){
+      var buttons = document.querySelectorAll('[data-analytics-period]');
+      var i;
+      for (i=0;i<buttons.length;i++) {
+        buttons[i].onclick = function(){
+          state.analyticsPeriod = this.getAttribute('data-analytics-period') || 'weekly';
+          renderAnalyticsPeriodButtons();
+          loadPrintingAnalytics();
+        };
+      }
+
+      var branch = byId('analyticsBranch');
+      if (branch) {
+        branch.onchange = function(){
+          state.analyticsBranchId = this.value || '';
+          loadPrintingAnalytics();
+        };
+      }
+
+      var date = byId('analyticsDate');
+      if (date) {
+        date.onchange = function(){
+          state.analyticsDate = this.value || analyticsToday();
+          loadPrintingAnalytics();
+        };
+      }
+
+      var previous = byId('analyticsPrev');
+      if (previous) previous.onclick = function(){ shiftAnalyticsDate(-1); };
+      var next = byId('analyticsNext');
+      if (next) next.onclick = function(){ shiftAnalyticsDate(1); };
+      var today = byId('analyticsToday');
+      if (today) today.onclick = function(){
+        state.analyticsDate = analyticsToday();
+        var input = byId('analyticsDate');
+        if (input) input.value = state.analyticsDate;
+        loadPrintingAnalytics();
+      };
+      var refresh = byId('analyticsRefresh');
+      if (refresh) refresh.onclick = loadPrintingAnalytics;
+    }
+
+    function renderAnalyticsPeriodButtons(){
+      var buttons = document.querySelectorAll('[data-analytics-period]');
+      var i,period;
+      for (i=0;i<buttons.length;i++) {
+        period = buttons[i].getAttribute('data-analytics-period');
+        if (period === state.analyticsPeriod) buttons[i].classList.add('active');
+        else buttons[i].classList.remove('active');
+      }
+    }
+
+    function shiftAnalyticsDate(direction){
+      var date = analyticsDateObject(state.analyticsDate || analyticsToday());
+      if (state.analyticsPeriod === 'monthly') {
+        date.setDate(1);
+        date.setMonth(date.getMonth() + direction);
+      } else if (state.analyticsPeriod === 'weekly') {
+        date.setDate(date.getDate() + (direction * 7));
+      } else {
+        date.setDate(date.getDate() + direction);
+      }
+      state.analyticsDate = analyticsYmd(date);
+      var input = byId('analyticsDate');
+      if (input) input.value = state.analyticsDate;
+      loadPrintingAnalytics();
+    }
+
+    function populateAnalyticsBranches(options){
+      var select = byId('analyticsBranch');
+      if (!select) return;
+      var html = '<option value="">All Branches</option>';
+      var i,option;
+      options = options || [];
+      for (i=0;i<options.length;i++) {
+        option = options[i];
+        html += '<option value="' + attr(option.value) + '"' +
+          (str(option.value) === str(state.analyticsBranchId) ? ' selected' : '') +
+          '>' + esc(option.label) + '</option>';
+      }
+      select.innerHTML = html;
+      select.value = state.analyticsBranchId || '';
+    }
+
+    function loadPrintingAnalytics(){
+      var target = byId('analyticsContent');
+      if (!target) return;
+      var requestId = ++state.analyticsRequestId;
+      target.innerHTML = '<div class="loading"><span class="spinner"></span>Loading printing analytics...</div>';
+
+      var filters = {
+        period: state.analyticsPeriod || 'weekly',
+        anchorDate: state.analyticsDate || analyticsToday(),
+        branchId: state.analyticsBranchId || ''
+      };
+
+      scriptRun('getAdminPrintingAnalytics',[state.token,filters],function(data){
+        if (requestId !== state.analyticsRequestId) return;
+        state.analytics = data || {};
+        state.analyticsPeriod = state.analytics.period || state.analyticsPeriod;
+        state.analyticsDate = state.analytics.anchorDate || state.analyticsDate;
+        state.analyticsBranchId = state.analytics.branchId || '';
+        populateAnalyticsBranches(state.analytics.branchOptions || []);
+        var date = byId('analyticsDate');
+        if (date) date.value = state.analyticsDate;
+        renderAnalyticsPeriodButtons();
+        renderPrintingAnalytics();
+      },function(error){
+        if (requestId !== state.analyticsRequestId) return;
+        target.innerHTML =
+          '<div class="error"><strong>Printing analytics could not load.</strong>' +
+          '<div style="margin-top:6px">' + esc(errorText(error)) + '</div>' +
+          '<button id="retryAnalytics" class="btn primary btn-sm" style="margin-top:10px" type="button">Retry</button></div>';
+        var retry = byId('retryAnalytics');
+        if (retry) retry.onclick = loadPrintingAnalytics;
+      });
+    }
+
+    function analyticsLineChart(items){
+      items = items || [];
+      if (!items.length) return '<div class="analytics-empty">No printing activity in this period.</div>';
+
+      var width = 760;
+      var height = 260;
+      var left = 45;
+      var right = 18;
+      var top = 18;
+      var bottom = 42;
+      var plotW = width-left-right;
+      var plotH = height-top-bottom;
+      var max = 0;
+      var i,value;
+      for (i=0;i<items.length;i++) {
+        value = Number(items[i].printedCopies || 0);
+        if (value > max) max = value;
+      }
+      if (max < 1) max = 1;
+
+      var grid = '';
+      var step;
+      for (i=0;i<=4;i++) {
+        var y = top + (plotH * i / 4);
+        var axisValue = Math.round(max * (1 - i/4));
+        grid += '<line class="trend-grid" x1="' + left + '" y1="' + y.toFixed(1) + '" x2="' + (width-right) + '" y2="' + y.toFixed(1) + '"></line>';
+        grid += '<text class="trend-axis-text" x="' + (left-7) + '" y="' + (y+3).toFixed(1) + '" text-anchor="end">' + axisValue + '</text>';
+      }
+
+      var points = [];
+      var circles = '';
+      var labels = '';
+      var labelEvery = items.length > 18 ? Math.ceil(items.length/8) : (items.length > 10 ? 2 : 1);
+
+      for (i=0;i<items.length;i++) {
+        var x = items.length === 1 ? left + plotW/2 : left + (plotW * i / (items.length-1));
+        var copies = Number(items[i].printedCopies || 0);
+        var pointY = top + plotH - (copies/max)*plotH;
+        points.push(x.toFixed(1) + ',' + pointY.toFixed(1));
+        circles += '<circle class="trend-point" cx="' + x.toFixed(1) + '" cy="' + pointY.toFixed(1) + '" r="4">' +
+          '<title>' + esc(items[i].label) + ': ' + copies + ' copies · ' + Number(items[i].printedJobs || 0) + ' jobs</title></circle>';
+        if (i % labelEvery === 0 || i === items.length-1) {
+          labels += '<text class="trend-axis-text" x="' + x.toFixed(1) + '" y="' + (height-16) + '" text-anchor="middle">' + esc(items[i].label) + '</text>';
+        }
+      }
+
+      var areaPoints = left + ',' + (top+plotH) + ' ' + points.join(' ') + ' ' + (width-right) + ',' + (top+plotH);
+
+      return '<div class="trend-wrap"><svg class="trend-svg" viewBox="0 0 760 260" role="img" aria-label="Printed copies trend">' +
+        grid +
+        '<polygon class="trend-area" points="' + areaPoints + '"></polygon>' +
+        '<polyline class="trend-line" points="' + points.join(' ') + '"></polyline>' +
+        circles + labels +
+        '</svg></div>';
+    }
+
+    function analyticsComparisonBars(items){
+      items = items || [];
+      if (!items.length) return '<div class="analytics-empty">No comparison data available.</div>';
+      var max = 0;
+      var i,value,html='';
+      for (i=0;i<items.length;i++) {
+        value = Number(items[i].printedCopies || 0);
+        if (value > max) max = value;
+      }
+      if (max < 1) max = 1;
+      for (i=0;i<items.length;i++) {
+        value = Number(items[i].printedCopies || 0);
+        var pct = Math.max(0,Math.min(100,(value/max)*100));
+        html += '<div class="comparison-row">' +
+          '<div class="comparison-label" title="' + attr(items[i].name) + '">' + esc(items[i].name) + '</div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+          '<div class="comparison-value">' + value + '</div></div>';
+      }
+      return '<div class="comparison-chart">' + html + '</div>';
+    }
+
+    function analyticsCompletionChart(items){
+      items = items || [];
+      if (!items.length) return '<div class="analytics-empty">No planned printing jobs in this period.</div>';
+      var html = '';
+      var i,item,total,printedPct,pendingPct;
+      for (i=0;i<items.length;i++) {
+        item = items[i];
+        total = Number(item.requiredJobs || 0);
+        printedPct = total ? (Number(item.completedJobs || 0)/total)*100 : 0;
+        pendingPct = total ? (Number(item.pendingJobs || 0)/total)*100 : 0;
+        html += '<div class="completion-row">' +
+          '<div class="completion-top"><strong title="' + attr(item.name) + '">' + esc(item.name) + '</strong>' +
+          '<span>' + Number(item.completedJobs || 0) + ' printed · ' + Number(item.pendingJobs || 0) + ' pending</span></div>' +
+          '<div class="completion-track" title="' + attr(item.name + ': ' + Number(item.completionRate || 0) + '% complete') + '">' +
+            '<div class="completion-printed" style="width:' + printedPct.toFixed(1) + '%"></div>' +
+            '<div class="completion-pending" style="width:' + pendingPct.toFixed(1) + '%"></div>' +
+          '</div></div>';
+      }
+      return '<div class="completion-list">' + html + '</div>';
+    }
+
+    function renderPrintingAnalytics(){
+      var target = byId('analyticsContent');
+      var data = state.analytics;
+      if (!target || !data) return;
+
+      var summary = data.summary || {};
+      var dimension = data.comparisonDimension || 'Branch';
+      var comparison = data.comparison || [];
+      var periodLabel = analyticsPeriodLabel(data);
+
+      var kpis =
+        '<section class="analytics-kpis">' +
+          '<div class="card analytics-kpi printed"><div class="kpi-label"><span>Printed Copies</span><span class="badge green">ACTUAL</span></div>' +
+            '<span class="kpi-value">' + Number(summary.printedCopies || 0) + '</span>' +
+            '<div class="kpi-note">' + Number(summary.printedJobs || 0) + ' jobs physically confirmed in this period.</div></div>' +
+          '<div class="card analytics-kpi"><div class="kpi-label"><span>Printed Jobs</span><span class="badge green">DONE</span></div>' +
+            '<span class="kpi-value">' + Number(summary.printedJobs || 0) + '</span>' +
+            '<div class="kpi-note">Measured from Printed At, not the planned class date.</div></div>' +
+          '<div class="card analytics-kpi pending"><div class="kpi-label"><span>Pending Copies</span><span class="badge amber">PLAN</span></div>' +
+            '<span class="kpi-value">' + Number(summary.pendingCopies || 0) + '</span>' +
+            '<div class="kpi-note">' + Number(summary.pendingJobs || 0) + ' planned jobs are still pending.</div></div>' +
+          '<div class="card analytics-kpi rate"><div class="kpi-label"><span>Completion Rate</span><span class="badge">' + Number(summary.completedJobs || 0) + '/' + Number(summary.requiredJobs || 0) + '</span></div>' +
+            '<span class="kpi-value">' + Number(summary.completionRate || 0).toFixed(1) + '%</span>' +
+            '<div class="kpi-note">Completion of required jobs scheduled in this period.</div></div>' +
+        '</section>';
+
+      var charts =
+        '<section class="analytics-charts">' +
+          '<article class="card analytics-chart-card">' +
+            '<div class="chart-head"><div><h3>Printing Trend</h3><p>Actual printed copies · ' + esc(periodLabel) + '</p></div><span class="badge red">' + esc(data.branchName || 'All Branches') + '</span></div>' +
+            analyticsLineChart(data.trend || []) +
+          '</article>' +
+          '<article class="card analytics-chart-card">' +
+            '<div class="chart-head"><div><h3>Printed Copies by ' + esc(dimension) + '</h3><p>Volume comparison for the selected period.</p></div><span class="badge">' + comparison.length + ' ' + esc(dimension.toLowerCase()) + (comparison.length===1?'':'s') + '</span></div>' +
+            analyticsComparisonBars(comparison) +
+          '</article>' +
+        '</section>' +
+        '<article class="card analytics-chart-card">' +
+          '<div class="chart-head"><div><h3>Printing Completion by ' + esc(dimension) + '</h3><p>Scheduled jobs: printed versus still pending.</p></div>' +
+            '<div class="chart-legend"><span><i class="legend-dot printed"></i> Printed</span><span><i class="legend-dot pending"></i> Pending</span></div></div>' +
+          analyticsCompletionChart(comparison) +
+          '<div class="analytics-footer"><span>Printed volume uses Printed At. Pending/completion uses the planned Print Plan date.</span><span>Updated ' + esc(data.generatedAt || '') + '</span></div>' +
+        '</article>';
+
+      target.innerHTML = kpis + charts;
+    }
+
+
+    function showOverview(){
+      state.section = 'Overview';
+      var data = state.boot || {};
+      var counts = data.counts || {};
+      var week = data.activeWeek || {};
+      var metrics = [
+        ['Branches',counts.Branches || 0],
+        ['Trainers',counts.Trainers || 0],
+        ['Classes',counts.Classes || 0],
+        ['Materials',counts.Materials || 0],
+        ['Levels',counts.Levels || 0],
+        ['Users',counts.Users || 0],
+        ['Print Plans',counts.Print_Plan || 0]
+      ];
+      var metricHtml = '';
+      var i;
+      for (i=0;i<metrics.length;i++) {
+        metricHtml += '<div class="card kpi"><span>' + esc(metrics[i][0]) + '</span><strong>' + Number(metrics[i][1]) + '</strong></div>';
+      }
+
+      if (!state.analyticsDate) state.analyticsDate = analyticsToday();
+
+      var content =
+        '<section class="card week-card">' +
+          '<div><span class="badge red">GLOBAL ACTIVE WEEK</span>' +
+          '<div class="week-big">' + esc(prettyDateFull(week.weekStart)) + ' - ' + esc(prettyDateFull(week.weekEnd)) + '</div>' +
+          '<div class="meta">Trainer materials, weekly submissions and printing views use this exact week.</div></div>' +
+          '<div class="week-actions"><div class="field"><label for="activeWeek">Activate week</label>' +
+          '<input id="activeWeek" class="control" type="date" value="' + attr(week.weekStart || '') + '"></div>' +
+          '<button id="activateWeek" class="btn primary" type="button">Activate</button></div>' +
+        '</section>' +
+
+        '<section class="analytics-shell">' +
+          '<div class="card analytics-filterbar">' +
+            '<div class="analytics-filtergroup">' +
+              '<div><div class="meta" style="margin-bottom:5px;font-weight:900">PERIOD</div>' +
+                '<div class="segment">' +
+                  '<button type="button" data-analytics-period="daily">Daily</button>' +
+                  '<button type="button" data-analytics-period="weekly">Weekly</button>' +
+                  '<button type="button" data-analytics-period="monthly">Monthly</button>' +
+                '</div></div>' +
+              '<div class="field date-field"><label for="analyticsDate">Reference Date</label>' +
+                '<input id="analyticsDate" class="control" type="date" value="' + attr(state.analyticsDate) + '"></div>' +
+              '<div class="field"><label for="analyticsBranch">Branch</label>' +
+                '<select id="analyticsBranch" class="control"><option value="">All Branches</option></select></div>' +
+            '</div>' +
+            '<div class="date-nav">' +
+              '<button id="analyticsPrev" class="btn soft btn-sm" type="button">Previous</button>' +
+              '<button id="analyticsToday" class="btn outline btn-sm" type="button">Today</button>' +
+              '<button id="analyticsNext" class="btn soft btn-sm" type="button">Next</button>' +
+              '<button id="analyticsRefresh" class="btn primary btn-sm" type="button">Refresh</button>' +
+            '</div>' +
+          '</div>' +
+          '<div id="analyticsContent"><div class="loading"><span class="spinner"></span>Loading printing analytics...</div></div>' +
+        '</section>' +
+
+        '<section class="system-summary">' +
+          '<div class="system-summary-title"><h3>System Records</h3><span class="meta">Current database totals</span></div>' +
+          '<section class="kpis">' + metricHtml + '</section>' +
+        '</section>';
+
+      render(shell(content,'Printing Analytics','Track printed-copy volume, pending workload and completion across every branch.'));
+      bindShell();
+      bindAnalyticsControls();
+      renderAnalyticsPeriodButtons();
+
+      var activate = byId('activateWeek');
+      if (activate) activate.onclick = activateWeek;
+
+      loadPrintingAnalytics();
+    }
+
+    function activateWeek(){
+      var input = byId('activeWeek');
+      var button = byId('activateWeek');
+      var value = input ? input.value : '';
+      if (!value) {
+        toast('Choose a date first.',true);
+        return;
+      }
+      busy(button,true,'Activating...');
+      scriptRun('setActiveWeek',[state.token,value],function(result){
+        if (result && result.activeWeek) state.boot.activeWeek = result.activeWeek;
+        toast('Global active week updated.',false);
+        showOverview();
+      },function(error){
+        busy(button,false,'Activate');
+        toast(errorText(error),true);
+      });
+    }
+
+    function fetchCrud(entity,onSuccess,onFailure){
+      scriptRun('getAdminCrudData',[state.token,entity],onSuccess,onFailure || handleFailure);
+    }
+
+    function loadGeneric(entity){
+      state.entity = entity;
+      render(shell('<div class="loading"><span class="spinner"></span>Loading ' + esc(str(entity).split('_').join(' ')) + '...</div>',entity,''));
+      bindShell();
+      fetchCrud(entity,function(data){
+        state.crud = data;
+        renderGeneric();
+      },handleFailure);
+    }
+
+    function renderGeneric(){
+      var data = state.crud;
+      if (!data) return;
+      var content =
+        '<div class="section-toolbar">' +
+          '<input id="search" class="search" placeholder="Search ' + attr(str(data.entity).split('_').join(' ')) + '...">' +
+          '<div class="section-tools"><button id="newBtn" class="btn primary" type="button">+ New Record</button></div>' +
+        '</div><div id="rows"></div>';
+      render(shell(content,data.entity,sectionSubtitle(data.entity)));
+      bindShell();
+      var search = byId('search');
+      if (search) search.oninput = renderGenericRows;
+      var add = byId('newBtn');
+      if (add) add.onclick = function(){ openEditor(null,{}); };
+      renderGenericRows();
+    }
+
+    function renderGenericRows(){
+      var data = state.crud;
+      var target = byId('rows');
+      if (!data || !target) return;
+      var query = byId('search') ? byId('search').value.toLowerCase().trim() : '';
+      var rows = [];
+      var source = data.rows || [];
+      var fields = data.fields || [];
+      var i,j,match,value;
+      for (i=0;i<source.length;i++) {
+        match = !query;
+        if (!match) {
+          for (j=0;j<fields.length;j++) {
+            value = displayValue(fields[j],source[i][fields[j].name]);
+            if (str(value).toLowerCase().indexOf(query) >= 0) { match = true; break; }
+          }
+        }
+        if (match) rows.push(source[i]);
+      }
+      if (!rows.length) {
+        target.innerHTML = empty('No records found.');
+        return;
+      }
+      target.innerHTML = tableAndCards(rows,fields);
+      bindRecordButtons(target);
+    }
+
+    function selectCard(icon,title,sub,count,type,value){
+      return '<button type="button" class="select-card" data-select="' + attr(type) + '" data-value="' + attr(value) + '">' +
+        '<div class="select-icon">' + esc(icon) + '</div>' +
+        '<div class="select-title">' + esc(title) + '</div>' +
+        '<div class="select-sub">' + esc(sub) + '</div>' +
+        '<div class="select-foot"><span class="select-count">' + esc(count) + '</span><span class="select-arrow">&rarr;</span></div>' +
+      '</button>';
+    }
+
+    function loadTrainers(){
+      state.entity = 'Trainers';
+      render(shell('<div class="loading"><span class="spinner"></span>Building branch filters...</div>','Trainers',''));
+      bindShell();
+      fetchCrud('Trainers',function(data){
+        state.crud = data;
+        renderTrainerBranches();
+      },handleFailure);
+    }
+
+    function renderTrainerBranches(){
+      state.view = 'branch';
+      state.context = {};
+      var data = state.crud;
+      var branches = data && data.options ? (data.options.branches || []) : [];
+      var rows = data ? (data.rows || []) : [];
+      var cards = '';
+      var i,j,listCount,activeCount,row;
+      for (i=0;i<branches.length;i++) {
+        listCount = 0;
+        activeCount = 0;
+        for (j=0;j<rows.length;j++) {
+          row = rows[j];
+          if (str(row.Branch_ID) === str(branches[i].value)) {
+            listCount++;
+            if (str(row.Active) === 'Active') activeCount++;
+          }
+        }
+        cards += selectCard('BR',optionName(branches[i].label),activeCount + ' active - ' + listCount + ' total',listCount + ' trainers','branch',branches[i].value);
+      }
+      var content = crumbs([{label:'Trainers'}]) +
+        '<div class="section-toolbar"><div class="meta">Choose a branch first. Trainer records appear after the branch filter is selected.</div>' +
+        '<div class="section-tools"><button id="newGlobalTrainer" class="btn primary" type="button">+ New Trainer</button></div></div>' +
+        (cards ? '<div class="selection-grid">' + cards + '</div>' : empty('No branches available.'));
+      render(shell(content,'Trainers','Choose a branch, then manage trainer records without scrolling through the whole company.'));
+      bindShell();
+      bindSelectButtons('branch',function(value){ renderTrainersForBranch(value); });
+      var add = byId('newGlobalTrainer');
+      if (add) add.onclick = function(){ openEditor(null,{}); };
+    }
+
+    function renderTrainersForBranch(branchId){
+      state.view = 'trainers';
+      state.context = {branchId:branchId};
+      var data = state.crud;
+      var name = relationName(data,'branches',branchId);
+      var source = data.rows || [];
+      var total = 0;
+      var i;
+      for (i=0;i<source.length;i++) if (str(source[i].Branch_ID) === str(branchId)) total++;
+      var content = crumbs([{label:'Trainers',action:'trainerRoot'},{label:name}]) +
+        '<div class="section-toolbar"><input id="search" class="search" placeholder="Search trainers in ' + attr(name) + '...">' +
+        '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Branches</button>' +
+        '<button id="newBtn" class="btn primary" type="button">+ New Trainer</button></div></div><div id="rows"></div>';
+      render(shell(content,name + ' Trainers',total + ' trainer records in this branch.'));
+      bindShell();
+      byId('backBtn').onclick = renderTrainerBranches;
+      byId('newBtn').onclick = function(){ openEditor(null,{Branch_ID:branchId}); };
+      byId('search').oninput = function(){ renderTrainerCards(branchId); };
+      renderTrainerCards(branchId);
+    }
+
+    function renderTrainerCards(branchId){
+      var target = byId('rows');
+      var data = state.crud;
+      if (!target || !data) return;
+      var query = byId('search') ? byId('search').value.toLowerCase() : '';
+      var rows = data.rows || [];
+      var html = '';
+      var i,row,hay;
+      for (i=0;i<rows.length;i++) {
+        row = rows[i];
+        if (str(row.Branch_ID) !== str(branchId)) continue;
+        hay = (str(row.Trainer_Name) + ' ' + str(row.Trainer_ID) + ' ' + str(row.Active)).toLowerCase();
+        if (query && hay.indexOf(query) < 0) continue;
+        html += '<article class="card record-card">' +
+          '<div class="record-head"><div><div class="record-title">' + esc(row.Trainer_Name) + '</div><div class="record-id">' + esc(row.Trainer_ID) + '</div></div>' +
+          statusBadge(row.Active) + '</div>' +
+          '<div class="record-lines"><div class="record-line"><b>Branch</b><span>' + esc(relationName(data,'branches',row.Branch_ID)) + '</span></div></div>' +
+          '<div class="record-actions"><button class="btn soft btn-sm edit" data-key="' + attr(row.__key) + '" type="button">Edit</button>' +
+          '<button class="btn danger btn-sm del" data-key="' + attr(row.__key) + '" type="button">Delete</button></div></article>';
+      }
+      target.innerHTML = html ? '<div class="record-grid">' + html + '</div>' : empty('No trainers match this branch or search.');
+      bindRecordButtons(target);
+    }
+
+    function loadClasses(){
+      state.entity = 'Classes';
+      render(shell('<div class="loading"><span class="spinner"></span>Building class hierarchy...</div>','Classes',''));
+      bindShell();
+      fetchCrud('Classes',function(classesData){
+        state.crud = classesData;
+        fetchCrud('Trainers',function(trainerData){
+          state.aux.trainers = trainerData;
+          renderClassBranches();
+        },handleFailure);
+      },handleFailure);
+    }
+
+    function renderClassBranches(){
+      state.view = 'branch';
+      state.context = {};
+      var data = state.crud;
+      var branches = data.options ? (data.options.branches || []) : [];
+      var rows = data.rows || [];
+      var cards = '';
+      var i,j,row,count,trainerSeen,trainerCount;
+      for (i=0;i<branches.length;i++) {
+        count = 0;
+        trainerSeen = {};
+        trainerCount = 0;
+        for (j=0;j<rows.length;j++) {
+          row = rows[j];
+          if (str(row.Branch_ID) === str(branches[i].value)) {
+            count++;
+            if (row.Trainer_ID && !trainerSeen[str(row.Trainer_ID)]) {
+              trainerSeen[str(row.Trainer_ID)] = true;
+              trainerCount++;
+            }
+          }
+        }
+        cards += selectCard('BR',optionName(branches[i].label),trainerCount + ' trainers - ' + count + ' classes',count + ' classes','classBranch',branches[i].value);
+      }
+      var content = crumbs([{label:'Classes'}]) +
+        '<div class="section-toolbar"><div class="meta">Branch to Trainer to assigned classes. CRUD remains available in the final view.</div>' +
+        '<div class="section-tools"><button id="newGlobalClass" class="btn primary" type="button">+ New Class</button></div></div>' +
+        (cards ? '<div class="selection-grid">' + cards + '</div>' : empty('No branches available.'));
+      render(shell(content,'Classes','Start with a branch, then choose the trainer name before opening assigned classes.'));
+      bindShell();
+      bindSelectButtons('classBranch',function(value){ renderClassTrainerGrid(value); });
+      byId('newGlobalClass').onclick = function(){ openEditor(null,{}); };
+    }
+
+    function renderClassTrainerGrid(branchId){
+      state.view = 'trainer';
+      state.context = {branchId:branchId};
+      var data = state.crud;
+      var trainersData = state.aux.trainers;
+      var branchName = relationName(data,'branches',branchId);
+      var trainers = trainersData ? (trainersData.rows || []) : [];
+      var rows = data.rows || [];
+      var cards = '';
+      var i,j,trainer,count,active;
+      for (i=0;i<trainers.length;i++) {
+        trainer = trainers[i];
+        if (str(trainer.Branch_ID) !== str(branchId)) continue;
+        count = 0; active = 0;
+        for (j=0;j<rows.length;j++) {
+          if (str(rows[j].Branch_ID) === str(branchId) && str(rows[j].Trainer_ID) === str(trainer.Trainer_ID)) {
+            count++;
+            if (str(rows[j].Status) === 'Active') active++;
+          }
+        }
+        cards += selectCard('TR',trainer.Trainer_Name,active + ' active - ' + count + ' classes',count + ' classes','classTrainer',trainer.Trainer_ID);
+      }
+      var content = crumbs([{label:'Classes',action:'classRoot'},{label:branchName}]) +
+        '<div class="section-toolbar"><div class="meta">Choose a trainer to display only that trainer assigned classes.</div>' +
+        '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Branches</button>' +
+        '<button id="newBtn" class="btn primary" type="button">+ New Class</button></div></div>' +
+        (cards ? '<div class="selection-grid">' + cards + '</div>' : empty('No trainers found in this branch.'));
+      render(shell(content,branchName,'Trainer names are the second grid filter before class records appear.'));
+      bindShell();
+      byId('backBtn').onclick = renderClassBranches;
+      byId('newBtn').onclick = function(){ openEditor(null,{Branch_ID:branchId}); };
+      bindSelectButtons('classTrainer',function(value){ renderClassesForTrainer(branchId,value); });
+    }
+
+    function renderClassesForTrainer(branchId,trainerId){
+      state.view = 'classes';
+      state.context = {branchId:branchId,trainerId:trainerId};
+      var data = state.crud;
+      var branchName = relationName(data,'branches',branchId);
+      var trainerName = relationName(data,'trainers',trainerId);
+      var rows = data.rows || [];
+      var total = 0,i;
+      for (i=0;i<rows.length;i++) if (str(rows[i].Branch_ID)===str(branchId) && str(rows[i].Trainer_ID)===str(trainerId)) total++;
+      var content = crumbs([
+        {label:'Classes',action:'classRoot'},
+        {label:branchName,action:'classBranch'},
+        {label:trainerName}
+      ]) +
+      '<div class="section-toolbar"><input id="search" class="search" placeholder="Search classes...">' +
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Trainers</button>' +
+      '<button id="newBtn" class="btn primary" type="button">+ New Class</button></div></div><div id="rows"></div>';
+      render(shell(content,trainerName,total + ' class records assigned to this trainer.'));
+      bindShell();
+      byId('backBtn').onclick = function(){ renderClassTrainerGrid(branchId); };
+      byId('newBtn').onclick = function(){ openEditor(null,{Branch_ID:branchId,Trainer_ID:trainerId}); };
+      byId('search').oninput = function(){ renderClassCards(branchId,trainerId); };
+      renderClassCards(branchId,trainerId);
+    }
+
+    function renderClassCards(branchId,trainerId){
+      var target = byId('rows');
+      var data = state.crud;
+      if (!target || !data) return;
+      var query = byId('search') ? byId('search').value.toLowerCase() : '';
+      var rows = data.rows || [];
+      var html = '';
+      var i,row,hay;
+      for (i=0;i<rows.length;i++) {
+        row = rows[i];
+        if (str(row.Branch_ID)!==str(branchId) || str(row.Trainer_ID)!==str(trainerId)) continue;
+        hay = (str(row.Class_Name)+' '+str(row.Level_ID)+' '+str(row.Session)+' '+str(row.Status)).toLowerCase();
+        if (query && hay.indexOf(query)<0) continue;
+        html += '<article class="card record-card"><div class="record-head"><div>' +
+          '<div class="record-title">' + esc(row.Class_Name) + '</div><div class="record-id">' + esc(row.Class_ID) + '</div></div>' +
+          statusBadge(row.Status) + '</div><div class="record-lines">' +
+          '<div class="record-line"><b>Level</b><span>' + esc(relationName(data,'levels',row.Level_ID)) + '</span></div>' +
+          '<div class="record-line"><b>Session</b><span>' + esc(row.Session || '-') + '</span></div></div>' +
+          '<div class="record-actions"><button class="btn soft btn-sm edit" data-key="' + attr(row.__key) + '" type="button">Edit</button>' +
+          '<button class="btn danger btn-sm del" data-key="' + attr(row.__key) + '" type="button">Delete</button></div></article>';
+      }
+      target.innerHTML = html ? '<div class="record-grid">' + html + '</div>' : empty('No class records match this filter.');
+      bindRecordButtons(target);
+    }
+
+    function materialYears(){
+      var rows = state.crud ? (state.crud.rows || []) : [];
+      var values = [],i,parts;
+      for (i=0;i<rows.length;i++) {
+        parts = dateParts(rows[i].Week_Start);
+        if (parts.year) values.push(parts.year);
+      }
+      values = uniqueValues(values);
+      values.sort(function(a,b){return Number(b)-Number(a);});
+      if (!values.length) {
+        parts = dateParts(state.boot && state.boot.activeWeek ? state.boot.activeWeek.weekStart : '');
+        values.push(parts.year || new Date().getFullYear());
+      }
+      return values;
+    }
+
+    function loadMaterials(){
+      state.entity = 'Materials';
+      render(shell('<div class="loading"><span class="spinner"></span>Organizing materials archive...</div>','Materials',''));
+      bindShell();
+      fetchCrud('Materials',function(data){
+        state.crud = data;
+        renderMaterialMonths();
+      },handleFailure);
+    }
+
+    function renderMaterialMonths(year){
+      state.view = 'month';
+      var years = materialYears();
+      year = Number(year || state.context.year || years[0]);
+      state.context = {year:year};
+      var rows = state.crud ? (state.crud.rows || []) : [];
+      var cards = '';
+      var monthIndex,i,row,parts,count,active,weeksSeen,weeks;
+      for (monthIndex=0;monthIndex<12;monthIndex++) {
+        count = 0; active = 0; weeksSeen = {}; weeks = 0;
+        for (i=0;i<rows.length;i++) {
+          row = rows[i];
+          parts = dateParts(row.Week_Start);
+          if (parts.year===year && parts.month===monthIndex) {
+            count++;
+            if (str(row.Status)==='Active') active++;
+            if (row.Week_Start && !weeksSeen[str(row.Week_Start)]) {
+              weeksSeen[str(row.Week_Start)] = true; weeks++;
+            }
+          }
+        }
+        if (count) cards += selectCard('MO',MONTHS[monthIndex],weeks + ' weeks - ' + active + ' active',count + ' records','materialMonth',String(monthIndex));
+      }
+      var content = crumbs([{label:'Materials'}]) + yearTabs(years,year,'materialYear') +
+        '<div class="section-toolbar"><div class="meta">Months appear only when material records exist.</div>' +
+        '<div class="section-tools"><button id="newBtn" class="btn primary" type="button">+ New Material</button></div></div>' +
+        (cards ? '<div class="selection-grid">' + cards + '</div>' : empty('No materials found for this year.'));
+      render(shell(content,'Materials Archive','Year to Month to Week to Level to Monday-Friday material records.'));
+      bindShell();
+      bindYearTabs('materialYear',function(value){ renderMaterialMonths(value); });
+      byId('newBtn').onclick = function(){ openEditor(null,{}); };
+      bindSelectButtons('materialMonth',function(value){ renderMaterialWeeks(year,Number(value)); });
+    }
+
+    function renderMaterialWeeks(year,month){
+      state.view = 'week';
+      state.context = {year:year,month:month};
+      var rows = state.crud ? (state.crud.rows || []) : [];
+      var weekValues = [],i,parts;
+      for (i=0;i<rows.length;i++) {
+        parts = dateParts(rows[i].Week_Start);
+        if (parts.year===year && parts.month===month && rows[i].Week_Start) weekValues.push(rows[i].Week_Start);
+      }
+      weekValues = uniqueValues(weekValues);
+      weekValues.sort();
+      weekValues.reverse();
+      var cards = '',j,row,count,active,levelsSeen,levels;
+      for (i=0;i<weekValues.length;i++) {
+        count=0;active=0;levelsSeen={};levels=0;
+        for (j=0;j<rows.length;j++) {
+          row=rows[j];
+          if (str(row.Week_Start)===str(weekValues[i])) {
+            count++;
+            if (str(row.Status)==='Active') active++;
+            if (row.Level_ID && !levelsSeen[str(row.Level_ID)]) {levelsSeen[str(row.Level_ID)]=true;levels++;}
+          }
+        }
+        cards += selectCard('WK',weekLabel(weekValues[i]),levels+' levels - '+active+' active',count+' records','materialWeek',weekValues[i]);
+      }
+      var content = crumbs([{label:'Materials',action:'materialRoot'},{label:MONTHS[month]+' '+year}]) +
+        '<div class="section-toolbar"><div class="meta">Choose a week to open its level grid.</div>' +
+        '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Months</button>' +
+        '<button id="newBtn" class="btn primary" type="button">+ New Material</button></div></div>' +
+        (cards ? '<div class="selection-grid">'+cards+'</div>' : empty('No weeks found.'));
+      render(shell(content,MONTHS[month]+' '+year,'Weeks are grouped by their Monday start date.'));
+      bindShell();
+      byId('backBtn').onclick = function(){ renderMaterialMonths(year); };
+      byId('newBtn').onclick = function(){ openEditor(null,{}); };
+      bindSelectButtons('materialWeek',function(value){ renderMaterialLevels(year,month,value); });
+    }
+
+    function renderMaterialLevels(year,month,week){
+      state.view='level';
+      state.context={year:year,month:month,week:week};
+      var data=state.crud;
+      var rows=data.rows||[];
+      var levels=data.options ? (data.options.levels||[]) : [];
+      var cards='',i,j,count,activeDays,daySeen,row;
+      for(i=0;i<levels.length;i++){
+        count=0;activeDays=0;daySeen={};
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(str(row.Week_Start)===str(week) && str(row.Level_ID)===str(levels[i].value)){
+            count++;
+            if(str(row.Status)==='Active' && row.Day && !daySeen[str(row.Day)]){
+              daySeen[str(row.Day)]=true;activeDays++;
+            }
+          }
+        }
+        cards += selectCard('LV',optionName(levels[i].label),activeDays+'/5 active days',count+' records','materialLevel',levels[i].value);
+      }
+      var content=crumbs([
+        {label:'Materials',action:'materialRoot'},
+        {label:MONTHS[month]+' '+year,action:'materialMonth'},
+        {label:weekLabel(week)}
+      ])+
+      '<div class="section-toolbar"><div class="meta">Every level stays visible, including levels with zero active days.</div>'+
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Weeks</button>'+
+      '<button id="newBtn" class="btn primary" type="button">+ New Material</button></div></div>'+
+      '<div class="selection-grid">'+cards+'</div>';
+      render(shell(content,weekLabel(week),'Choose a level to inspect its Monday-Friday material records.'));
+      bindShell();
+      byId('backBtn').onclick=function(){renderMaterialWeeks(year,month);};
+      byId('newBtn').onclick=function(){openEditor(null,{Week_Start:week});};
+      bindSelectButtons('materialLevel',function(value){renderMaterialRecords(year,month,week,value);});
+    }
+
+    function renderMaterialRecords(year,month,week,levelId){
+      state.view='records';
+      state.context={year:year,month:month,week:week,levelId:levelId};
+      var data=state.crud;
+      var levelName=relationName(data,'levels',levelId);
+      var rows=data.rows||[];
+      var groups='',i,j,row,listHtml,count,hasActive;
+      for(i=0;i<DAYS.length;i++){
+        listHtml='';count=0;hasActive=false;
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(str(row.Week_Start)===str(week) && str(row.Level_ID)===str(levelId) && str(row.Day)===DAYS[i]){
+            count++;
+            if(str(row.Status)==='Active')hasActive=true;
+            listHtml += materialRecordCard(row);
+          }
+        }
+        groups += '<section class="card day-group"><div class="day-group-head"><h3>'+esc(DAYS[i])+'</h3>'+
+          '<span class="badge '+(hasActive?'green':'gray')+'">'+(count?count+' record'+(count===1?'':'s'):'No record')+'</span></div>'+
+          '<div class="day-items">'+(listHtml||'<div class="meta">No material stored for '+esc(DAYS[i])+'.</div>')+'</div></section>';
+      }
+      var content=crumbs([
+        {label:'Materials',action:'materialRoot'},
+        {label:MONTHS[month]+' '+year,action:'materialMonth'},
+        {label:weekLabel(week),action:'materialWeek'},
+        {label:levelName}
+      ])+
+      '<div class="section-toolbar"><div class="meta">Material records are separated by weekday for this level.</div>'+
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Levels</button>'+
+      '<button id="newBtn" class="btn primary" type="button">+ New Material</button></div></div>'+
+      '<div class="day-groups">'+groups+'</div>';
+      render(shell(content,levelName,weekLabel(week)));
+      bindShell();
+      byId('backBtn').onclick=function(){renderMaterialLevels(year,month,week);};
+      byId('newBtn').onclick=function(){openEditor(null,{Week_Start:week,Level_ID:levelId});};
+      bindRecordButtons(document);
+    }
+
+    function materialRecordCard(row){
+      var link = isHttpUrl(row.PDF_File_Link) ?
+        '<a class="link" href="'+attr(row.PDF_File_Link)+'" target="_blank" rel="noopener noreferrer">Open link</a>' : '-';
+      return '<article class="record-card" style="border:1px solid var(--line);border-radius:14px;background:var(--surface2)">'+
+        '<div class="record-head"><div><div class="record-title">'+esc(row.Title||row.Day)+'</div><div class="record-id">'+esc(row.Material_ID)+'</div></div>'+
+        statusBadge(row.Status)+'</div><div class="record-lines"><div class="record-line"><b>Link</b><span>'+link+'</span></div>'+
+        '<div class="record-line"><b>Uploaded By</b><span>'+esc(row.Uploaded_By||'-')+'</span></div></div>'+
+        '<div class="record-actions"><button class="btn soft btn-sm edit" data-key="'+attr(row.__key)+'" type="button">Edit</button>'+
+        '<button class="btn danger btn-sm del" data-key="'+attr(row.__key)+'" type="button">Delete</button></div></article>';
+    }
+
+    function printYears(){
+      var rows=state.crud?(state.crud.rows||[]):[];
+      var values=[],i,parts;
+      for(i=0;i<rows.length;i++){parts=dateParts(rows[i].Date);if(parts.year)values.push(parts.year);}
+      values=uniqueValues(values);
+      values.sort(function(a,b){return Number(b)-Number(a);});
+      if(!values.length){
+        parts=dateParts(state.boot&&state.boot.activeWeek?state.boot.activeWeek.weekStart:'');
+        values.push(parts.year||new Date().getFullYear());
+      }
+      return values;
+    }
+
+    function loadPrintPlans(){
+      state.entity='Print_Plan';
+      render(shell('<div class="loading"><span class="spinner"></span>Organizing print plans...</div>','Print Plans',''));
+      bindShell();
+      fetchCrud('Print_Plan',function(plansData){
+        state.crud=plansData;
+        fetchCrud('Classes',function(classesData){
+          state.aux.classes=classesData;
+          fetchCrud('Trainers',function(trainersData){
+            state.aux.trainers=trainersData;
+            renderPrintMonths();
+          },handleFailure);
+        },handleFailure);
+      },handleFailure);
+    }
+
+    function branchFromPlan(plan){
+      var rows=state.aux.classes?(state.aux.classes.rows||[]):[];
+      var i;
+      for(i=0;i<rows.length;i++){
+        if(str(rows[i].Class_ID)===str(plan.Class_ID))return rows[i].Branch_ID||'';
+      }
+      return '';
+    }
+
+    function renderPrintMonths(year){
+      state.view='month';
+      var years=printYears();
+      year=Number(year||state.context.year||years[0]);
+      state.context={year:year};
+      var rows=state.crud?(state.crud.rows||[]):[];
+      var cards='',m,i,parts,count,weeksSeen,weeks,trainersSeen,trainers,row,wkey;
+      for(m=0;m<12;m++){
+        count=0;weeksSeen={};weeks=0;trainersSeen={};trainers=0;
+        for(i=0;i<rows.length;i++){
+          row=rows[i];parts=dateParts(row.Date);
+          if(parts.year===year&&parts.month===m){
+            count++;wkey=mondayKey(row.Date);
+            if(wkey&&!weeksSeen[wkey]){weeksSeen[wkey]=true;weeks++;}
+            if(row.Trainer_ID&&!trainersSeen[str(row.Trainer_ID)]){trainersSeen[str(row.Trainer_ID)]=true;trainers++;}
+          }
+        }
+        if(count)cards+=selectCard('MO',MONTHS[m],weeks+' weeks - '+trainers+' trainers',count+' plans','printMonth',String(m));
+      }
+      var content=crumbs([{label:'Print Plans'}])+yearTabs(years,year,'printYear')+
+        '<div class="section-toolbar"><div class="meta">Print plans are archived by month before any record list appears.</div>'+
+        '<div class="section-tools"><button id="newBtn" class="btn primary" type="button">+ New Print Plan</button></div></div>'+
+        (cards?'<div class="selection-grid">'+cards+'</div>':empty('No print plans found for this year.'));
+      render(shell(content,'Print Plans','Year to Month to Week to Branch to Trainer to daily print records.'));
+      bindShell();
+      bindYearTabs('printYear',function(value){renderPrintMonths(value);});
+      byId('newBtn').onclick=function(){openEditor(null,{});};
+      bindSelectButtons('printMonth',function(value){renderPrintWeeks(year,Number(value));});
+    }
+
+    function renderPrintWeeks(year,month){
+      state.view='week';
+      state.context={year:year,month:month};
+      var rows=state.crud?(state.crud.rows||[]):[];
+      var weekValues=[],i,parts;
+      for(i=0;i<rows.length;i++){parts=dateParts(rows[i].Date);if(parts.year===year&&parts.month===month)weekValues.push(mondayKey(rows[i].Date));}
+      weekValues=uniqueValues(weekValues);weekValues.sort();weekValues.reverse();
+      var cards='',w,j,row,count,copies,branchesSeen,branches;
+      for(i=0;i<weekValues.length;i++){
+        w=weekValues[i];count=0;copies=0;branchesSeen={};branches=0;
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(mondayKey(row.Date)!==w)continue;
+          count++;
+          if(str(row.Print_Required)==='Yes')copies+=Number(row.Copies)||0;
+          var bid=branchFromPlan(row);
+          if(bid&&!branchesSeen[str(bid)]){branchesSeen[str(bid)]=true;branches++;}
+        }
+        cards+=selectCard('WK',weekLabel(w),count+' plans - '+copies+' copies',branches+' branches','printWeek',w);
+      }
+      var content=crumbs([{label:'Print Plans',action:'printRoot'},{label:MONTHS[month]+' '+year}])+
+        '<div class="section-toolbar"><div class="meta">Choose the week before opening branch printing activity.</div>'+
+        '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Months</button>'+
+        '<button id="newBtn" class="btn primary" type="button">+ New Print Plan</button></div></div>'+
+        (cards?'<div class="selection-grid">'+cards+'</div>':empty('No print-plan weeks found.'));
+      render(shell(content,MONTHS[month]+' '+year,'Weekly print plans grouped by Monday-Friday windows.'));
+      bindShell();
+      byId('backBtn').onclick=function(){renderPrintMonths(year);};
+      byId('newBtn').onclick=function(){openEditor(null,{});};
+      bindSelectButtons('printWeek',function(value){renderPrintBranches(year,month,value);});
+    }
+
+    function renderPrintBranches(year,month,week){
+      state.view='branch';
+      state.context={year:year,month:month,week:week};
+      var data=state.crud;
+      var rows=data.rows||[];
+      var branches=data.options?(data.options.branches||[]):[];
+      var cards='',i,j,branch,count,copies,trainerSeen,trainers,row;
+      for(i=0;i<branches.length;i++){
+        branch=branches[i];count=0;copies=0;trainerSeen={};trainers=0;
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(mondayKey(row.Date)!==week||str(branchFromPlan(row))!==str(branch.value))continue;
+          count++;
+          if(str(row.Print_Required)==='Yes')copies+=Number(row.Copies)||0;
+          if(row.Trainer_ID&&!trainerSeen[str(row.Trainer_ID)]){trainerSeen[str(row.Trainer_ID)]=true;trainers++;}
+        }
+        if(count)cards+=selectCard('BR',optionName(branch.label),trainers+' trainers - '+copies+' copies',count+' plans','printBranch',branch.value);
+      }
+      var content=crumbs([
+        {label:'Print Plans',action:'printRoot'},
+        {label:MONTHS[month]+' '+year,action:'printMonth'},
+        {label:weekLabel(week)}
+      ])+
+      '<div class="section-toolbar"><div class="meta">Only branches with print-plan activity for this week are shown.</div>'+
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Weeks</button>'+
+      '<button id="newBtn" class="btn primary" type="button">+ New Print Plan</button></div></div>'+
+      (cards?'<div class="selection-grid">'+cards+'</div>':empty('No branch print activity in this week.'));
+      render(shell(content,weekLabel(week),'Choose a branch to open its trainer print-plan grid.'));
+      bindShell();
+      byId('backBtn').onclick=function(){renderPrintWeeks(year,month);};
+      byId('newBtn').onclick=function(){openEditor(null,{Date:week});};
+      bindSelectButtons('printBranch',function(value){renderPrintTrainers(year,month,week,value);});
+    }
+
+    function renderPrintTrainers(year,month,week,branchId){
+      state.view='trainer';
+      state.context={year:year,month:month,week:week,branchId:branchId};
+      var data=state.crud;
+      var branchName=relationName(data,'branches',branchId);
+      var rows=data.rows||[];
+      var trainerIds=[],seen={},i,row;
+      for(i=0;i<rows.length;i++){
+        row=rows[i];
+        if(mondayKey(row.Date)===week&&str(branchFromPlan(row))===str(branchId)&&row.Trainer_ID&&!seen[str(row.Trainer_ID)]){
+          seen[str(row.Trainer_ID)]=true;trainerIds.push(row.Trainer_ID);
+        }
+      }
+      var cards='',j,id,count,copies,daySeen,days;
+      for(i=0;i<trainerIds.length;i++){
+        id=trainerIds[i];count=0;copies=0;daySeen={};days=0;
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(mondayKey(row.Date)===week&&str(branchFromPlan(row))===str(branchId)&&str(row.Trainer_ID)===str(id)){
+            count++;
+            if(str(row.Print_Required)==='Yes')copies+=Number(row.Copies)||0;
+            if(row.Date&&!daySeen[str(row.Date)]){daySeen[str(row.Date)]=true;days++;}
+          }
+        }
+        cards+=selectCard('TR',relationName(data,'trainers',id),count+' entries - '+copies+' copies',days+' days','printTrainer',id);
+      }
+      var content=crumbs([
+        {label:'Print Plans',action:'printRoot'},
+        {label:MONTHS[month]+' '+year,action:'printMonth'},
+        {label:weekLabel(week),action:'printWeek'},
+        {label:branchName}
+      ])+
+      '<div class="section-toolbar"><div class="meta">Choose a trainer to display only that trainer daily print-plan records.</div>'+
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Branches</button>'+
+      '<button id="newBtn" class="btn primary" type="button">+ New Print Plan</button></div></div>'+
+      (cards?'<div class="selection-grid">'+cards+'</div>':empty('No trainer print activity in this branch.'));
+      render(shell(content,branchName,weekLabel(week)));
+      bindShell();
+      byId('backBtn').onclick=function(){renderPrintBranches(year,month,week);};
+      byId('newBtn').onclick=function(){openEditor(null,{Date:week});};
+      bindSelectButtons('printTrainer',function(value){renderPrintRecords(year,month,week,branchId,value);});
+    }
+
+    function renderPrintRecords(year,month,week,branchId,trainerId){
+      state.view='records';
+      state.context={year:year,month:month,week:week,branchId:branchId,trainerId:trainerId};
+      var data=state.crud;
+      var branchName=relationName(data,'branches',branchId);
+      var trainerName=relationName(data,'trainers',trainerId);
+      var rows=data.rows||[];
+      var groups='',i,j,row,listHtml,count;
+      for(i=0;i<DAYS.length;i++){
+        listHtml='';count=0;
+        for(j=0;j<rows.length;j++){
+          row=rows[j];
+          if(mondayKey(row.Date)===week&&str(branchFromPlan(row))===str(branchId)&&str(row.Trainer_ID)===str(trainerId)&&dayName(row.Date)===DAYS[i]){
+            count++;listHtml+=printRecordCard(row);
+          }
+        }
+        groups+='<section class="card day-group"><div class="day-group-head"><h3>'+esc(DAYS[i])+'</h3>'+
+          '<span class="badge '+(count?'green':'gray')+'">'+(count?count+' plan'+(count===1?'':'s'):'No plan')+'</span></div>'+
+          '<div class="day-items">'+(listHtml||'<div class="meta">No print-plan record for '+esc(DAYS[i])+'.</div>')+'</div></section>';
+      }
+      var content=crumbs([
+        {label:'Print Plans',action:'printRoot'},
+        {label:MONTHS[month]+' '+year,action:'printMonth'},
+        {label:weekLabel(week),action:'printWeek'},
+        {label:branchName,action:'printBranch'},
+        {label:trainerName}
+      ])+
+      '<div class="section-toolbar"><div class="meta">Daily plan details for this trainer.</div>'+
+      '<div class="section-tools"><button id="backBtn" class="btn soft" type="button">&larr; Trainers</button>'+
+      '<button id="newBtn" class="btn primary" type="button">+ New Print Plan</button></div></div>'+
+      '<div class="day-groups">'+groups+'</div>';
+      render(shell(content,trainerName,branchName+' - '+weekLabel(week)));
+      bindShell();
+      byId('backBtn').onclick=function(){renderPrintTrainers(year,month,week,branchId);};
+      byId('newBtn').onclick=function(){openEditor(null,{Date:week,Trainer_ID:trainerId});};
+      bindRecordButtons(document);
+    }
+
+    function printRecordCard(row){
+      var data=state.crud;
+      return '<article class="record-card" style="border:1px solid var(--line);border-radius:14px;background:var(--surface2)">'+
+        '<div class="record-head"><div><div class="record-title">'+esc(relationName(data,'classes',row.Class_ID))+'</div>'+
+        '<div class="record-id">'+esc(row.Date)+'</div></div>'+
+        '<span class="badge '+(str(row.Print_Required)==='Yes'?'green':'gray')+'">'+esc(row.Print_Required||'No')+'</span></div>'+
+        '<div class="record-lines"><div class="record-line"><b>Expected</b><span>'+(Number(row.Expected_Student)||0)+' students</span></div>'+
+        '<div class="record-line"><b>Copies</b><span>'+(Number(row.Copies)||0)+'</span></div>'+
+        '<div class="record-line"><b>Mode</b><span>'+esc(row.Print_Mode||'-')+'</span></div></div>'+
+        '<div class="record-actions"><button class="btn soft btn-sm edit" data-key="'+attr(row.__key)+'" type="button">Edit</button>'+
+        '<button class="btn danger btn-sm del" data-key="'+attr(row.__key)+'" type="button">Delete</button></div></article>';
+    }
+
+    function bindSelectButtons(type,handler){
+      var buttons=document.querySelectorAll('[data-select="'+type+'"]');
+      var i;
+      for(i=0;i<buttons.length;i++){
+        buttons[i].onclick=function(){handler(this.getAttribute('data-value'));};
+      }
+    }
+
+    function bindRecordButtons(scope){
+      var edits=scope.querySelectorAll('.edit');
+      var dels=scope.querySelectorAll('.del');
+      var i;
+      for(i=0;i<edits.length;i++)edits[i].onclick=function(){openEditorByKey(this.getAttribute('data-key'));};
+      for(i=0;i<dels.length;i++)dels[i].onclick=function(){deleteRecord(this.getAttribute('data-key'));};
+    }
+
+    function openEditorByKey(key){
+      var rows=state.crud?(state.crud.rows||[]):[];
+      var i,row=null;
+      for(i=0;i<rows.length;i++)if(str(rows[i].__key)===str(key)){row=rows[i];break;}
+      openEditor(row,{});
+    }
+
+    function copyObject(source){
+      var out={},key;
+      if(!source)return out;
+      for(key in source)if(Object.prototype.hasOwnProperty.call(source,key))out[key]=source[key];
+      return out;
+    }
+    function mergeObjects(a,b,c){
+      var out=copyObject(a),key,srcs=[b,c],i;
+      for(i=0;i<srcs.length;i++){
+        if(!srcs[i])continue;
+        for(key in srcs[i])if(Object.prototype.hasOwnProperty.call(srcs[i],key))out[key]=srcs[i][key];
+      }
+      return out;
+    }
+
+    function defaults(){
+      var week=state.boot&&state.boot.activeWeek?state.boot.activeWeek.weekStart:'';
+      return {Active:'Active',Status:'Active',Role:'Material Maker',Print_Required:'No',Copies:0,Expected_Student:0,Week_Start:week,Date:week,Day:'Monday'};
+    }
+
+    function openEditor(row,prefill){
+      var data=state.crud;
+      if(!data)return;
+      var isNew=!row;
+      var rec=mergeObjects(defaults(),prefill,row);
+      var backdrop=document.createElement('div');
+      backdrop.id='drawer';
+      backdrop.className='drawer-backdrop';
+      backdrop.setAttribute('data-key',row?row.__key:'');
+      var fields=data.fields||[];
+      var fieldsHtml='',i;
+      for(i=0;i<fields.length;i++)fieldsHtml+=fieldHtml(fields[i],rec[fields[i].name],isNew,rec);
+      backdrop.innerHTML='<section class="drawer">'+
+        '<div class="drawer-head"><h3>'+(isNew?'New ':'Edit ')+esc(str(data.entity).split('_').join(' '))+'</h3>'+
+        '<button id="closeDrawer" class="btn soft btn-sm" type="button">X</button></div>'+
+        '<div class="drawer-body"><div class="form-grid">'+fieldsHtml+'</div></div>'+
+        '<div class="drawer-foot"><button id="cancelDrawer" class="btn outline" type="button">Cancel</button>'+
+        '<button id="saveRecord" class="btn primary" type="button">Save Record</button></div></section>';
+      document.body.appendChild(backdrop);
+      byId('closeDrawer').onclick=closeEditor;
+      byId('cancelDrawer').onclick=closeEditor;
+      byId('saveRecord').onclick=saveRecord;
+      backdrop.onclick=function(event){if(event.target===backdrop)closeEditor();};
+      bindDependentFields();
+    }
+
+    function fieldHtml(field,value,isNew,rec){
+      var data=state.crud;
+      var val=value===null||value===undefined?'':value;
+      var keys=data.keyFields||[];
+      var isId=keys.indexOf(field.name)>=0&&data.entity!=='Print_Plan';
+      var required;
+      if(field.name==='Password')required=isNew;
+      else required=!!field.required&&!(isNew&&isId);
+      var hint='';
+      if(isNew&&isId)hint=' <span class="meta">(auto if blank)</span>';
+      else if(field.name==='Password'&&!isNew)hint=' <span class="meta">(blank keeps current)</span>';
+      var control='',i,options,option,selected,type,lock;
+      if(field.type==='select'||field.type==='relation'){
+        options=fieldOptions(field,rec);
+        control='<select class="control" data-field="'+attr(field.name)+'"'+(required?' required':'')+(field.readonly?' disabled':'')+'>';
+        for(i=0;i<options.length;i++){
+          option=options[i];
+          selected=str(option.value)===str(val)?' selected':'';
+          control+='<option value="'+attr(option.value)+'"'+selected+'>'+esc(option.label)+'</option>';
+        }
+        control+='</select>';
+      }else if(field.type==='textarea'){
+        control='<textarea class="control" data-field="'+attr(field.name)+'"'+(required?' required':'')+'>'+esc(val)+'</textarea>';
+      }else{
+        type=field.type==='datetime'?'datetime-local':field.type;
+        lock=isId&&!isNew;
+        control='<input class="control" data-field="'+attr(field.name)+'" type="'+attr(type)+'" value="'+attr(field.name==='Password'?'':val)+'"'+
+          (required?' required':'')+((field.readonly||lock)?' readonly':'')+'>';
+      }
+      return '<div class="field '+(field.type==='textarea'?'full':'')+'"><label>'+esc(field.label)+hint+'</label>'+control+'</div>';
+    }
+
+    function fieldOptions(field,rec){
+      var data=state.crud;
+      var out=[],base,i,row,allowed={};
+      if(field.type==='select'){
+        base=field.options||[];
+        for(i=0;i<base.length;i++)out.push({value:base[i],label:base[i]||'-'});
+        return out;
+      }
+      base=(data.options&&data.options[field.source])?data.options[field.source]:[];
+      for(i=0;i<base.length;i++)out.push({value:base[i].value,label:base[i].label});
+
+      if(data.entity==='Classes'&&field.name==='Trainer_ID'){
+        var branch=rec.Branch_ID||state.context.branchId||'';
+        allowed={};
+        var trainerRows=state.aux.trainers?(state.aux.trainers.rows||[]):[];
+        for(i=0;i<trainerRows.length;i++)if(!branch||str(trainerRows[i].Branch_ID)===str(branch))allowed[str(trainerRows[i].Trainer_ID)]=true;
+        out=filterOptions(out,allowed);
+      }
+      if(data.entity==='Print_Plan'&&field.name==='Trainer_ID'&&state.context.branchId){
+        allowed={};
+        var tRows=state.aux.trainers?(state.aux.trainers.rows||[]):[];
+        for(i=0;i<tRows.length;i++)if(str(tRows[i].Branch_ID)===str(state.context.branchId))allowed[str(tRows[i].Trainer_ID)]=true;
+        out=filterOptions(out,allowed);
+      }
+      if(data.entity==='Print_Plan'&&field.name==='Class_ID'){
+        var trainer=rec.Trainer_ID||state.context.trainerId||'';
+        allowed={};
+        var classRows=state.aux.classes?(state.aux.classes.rows||[]):[];
+        for(i=0;i<classRows.length;i++){
+          row=classRows[i];
+          if(state.context.branchId&&str(row.Branch_ID)!==str(state.context.branchId))continue;
+          if(trainer&&str(row.Trainer_ID)!==str(trainer))continue;
+          allowed[str(row.Class_ID)]=true;
+        }
+        out=filterOptions(out,allowed);
+      }
+      out.unshift({value:'',label:'Select...'});
+      return out;
+    }
+
+    function filterOptions(options,allowed){
+      var out=[],i;
+      for(i=0;i<options.length;i++)if(allowed[str(options[i].value)])out.push(options[i]);
+      return out;
+    }
+
+    function bindDependentFields(){
+      if(state.entity==='Classes'){
+        var branch= document.querySelector('[data-field="Branch_ID"]');
+        var trainer=document.querySelector('[data-field="Trainer_ID"]');
+        if(branch&&trainer){
+          branch.onchange=function(){
+            var rows=state.aux.trainers?(state.aux.trainers.rows||[]):[];
+            var ids=[],i;
+            for(i=0;i<rows.length;i++)if(str(rows[i].Branch_ID)===str(branch.value))ids.push(rows[i].Trainer_ID);
+            refillRelation(trainer,'trainers',ids);
+          };
+        }
+      }
+      if(state.entity==='Print_Plan'){
+        var trainerSelect=document.querySelector('[data-field="Trainer_ID"]');
+        var classSelect=document.querySelector('[data-field="Class_ID"]');
+        if(trainerSelect&&classSelect){
+          trainerSelect.onchange=function(){
+            var rows=state.aux.classes?(state.aux.classes.rows||[]):[];
+            var ids=[],i,row;
+            for(i=0;i<rows.length;i++){
+              row=rows[i];
+              if(state.context.branchId&&str(row.Branch_ID)!==str(state.context.branchId))continue;
+              if(trainerSelect.value&&str(row.Trainer_ID)!==str(trainerSelect.value))continue;
+              ids.push(row.Class_ID);
+            }
+            refillRelation(classSelect,'classes',ids);
+          };
+        }
+      }
+    }
+
+    function refillRelation(select,source,allowedIds){
+      var current=select.value;
+      var allowed={},i;
+      for(i=0;i<allowedIds.length;i++)allowed[str(allowedIds[i])]=true;
+      var options=state.crud&&state.crud.options?state.crud.options[source]:[];
+      var html='<option value="">Select...</option>';
+      for(i=0;i<options.length;i++){
+        if(allowed[str(options[i].value)])html+='<option value="'+attr(options[i].value)+'">'+esc(options[i].label)+'</option>';
+      }
+      select.innerHTML=html;
+      if(allowed[str(current)])select.value=current;
+    }
+
+    function closeEditor(){
+      var drawer=byId('drawer');
+      if(drawer&&drawer.parentNode)drawer.parentNode.removeChild(drawer);
+    }
+
+    function saveRecord(){
+      var backdrop=byId('drawer');
+      var button=byId('saveRecord');
+      if(!backdrop||!state.crud)return;
+      var inputs=backdrop.querySelectorAll('[data-field]');
+      var record={},i,input;
+      for(i=0;i<inputs.length;i++){
+        input=inputs[i];
+        if(input.required&&!str(input.value).trim()){
+          input.focus();
+          toast('Complete all required fields.',true);
+          return;
+        }
+        record[input.getAttribute('data-field')]=input.value;
+      }
+      busy(button,true,'Saving...');
+      scriptRun('adminSaveRecord',[state.token,state.entity,record,backdrop.getAttribute('data-key')||''],function(result){
+        if(result&&result.created&&state.boot&&state.boot.counts){
+          state.boot.counts[state.entity]=(state.boot.counts[state.entity]||0)+1;
+        }
+        closeEditor();
+        toast('Record saved.',false);
+        refreshCurrentView();
+      },function(error){
+        busy(button,false,'Save Record');
+        toast(errorText(error),true);
+      });
+    }
+
+    function deleteRecord(key){
+      if(!window.confirm('Delete this record? This changes the spreadsheet immediately.'))return;
+      scriptRun('adminDeleteRecord',[state.token,state.entity,key],function(){
+        if(state.boot&&state.boot.counts)state.boot.counts[state.entity]=Math.max(0,(state.boot.counts[state.entity]||0)-1);
+        toast('Record deleted.',false);
+        refreshCurrentView();
+      },function(error){toast(errorText(error),true);});
+    }
+
+    function refreshCurrentView(){
+      var section=state.section;
+      var view=state.view;
+      var ctx=copyObject(state.context);
+      if(section==='Branches'||section==='Levels'||section==='Users'){
+        fetchCrud(section,function(data){state.crud=data;renderGeneric();},handleFailure);
+        return;
+      }
+      if(section==='Trainers'){
+        fetchCrud('Trainers',function(data){
+          state.crud=data;
+          if(view==='trainers'&&ctx.branchId)renderTrainersForBranch(ctx.branchId);else renderTrainerBranches();
+        },handleFailure);
+        return;
+      }
+      if(section==='Classes'){
+        fetchCrud('Classes',function(classesData){
+          state.crud=classesData;
+          fetchCrud('Trainers',function(trainerData){
+            state.aux.trainers=trainerData;
+            if(view==='classes'&&ctx.branchId&&ctx.trainerId)renderClassesForTrainer(ctx.branchId,ctx.trainerId);
+            else if(view==='trainer'&&ctx.branchId)renderClassTrainerGrid(ctx.branchId);
+            else renderClassBranches();
+          },handleFailure);
+        },handleFailure);
+        return;
+      }
+      if(section==='Materials'){
+        fetchCrud('Materials',function(data){
+          state.crud=data;
+          if(view==='records'&&ctx.week&&ctx.levelId)renderMaterialRecords(ctx.year,ctx.month,ctx.week,ctx.levelId);
+          else if(view==='level'&&ctx.week)renderMaterialLevels(ctx.year,ctx.month,ctx.week);
+          else if(view==='week'&&typeof ctx.month==='number')renderMaterialWeeks(ctx.year,ctx.month);
+          else renderMaterialMonths(ctx.year);
+        },handleFailure);
+        return;
+      }
+      if(section==='Print_Plan'){
+        fetchCrud('Print_Plan',function(plansData){
+          state.crud=plansData;
+          fetchCrud('Classes',function(classesData){
+            state.aux.classes=classesData;
+            fetchCrud('Trainers',function(trainersData){
+              state.aux.trainers=trainersData;
+              if(view==='records'&&ctx.week&&ctx.branchId&&ctx.trainerId)renderPrintRecords(ctx.year,ctx.month,ctx.week,ctx.branchId,ctx.trainerId);
+              else if(view==='trainer'&&ctx.week&&ctx.branchId)renderPrintTrainers(ctx.year,ctx.month,ctx.week,ctx.branchId);
+              else if(view==='branch'&&ctx.week)renderPrintBranches(ctx.year,ctx.month,ctx.week);
+              else if(view==='week'&&typeof ctx.month==='number')renderPrintWeeks(ctx.year,ctx.month);
+              else renderPrintMonths(ctx.year);
+            },handleFailure);
+          },handleFailure);
+        },handleFailure);
+      }
+    }
+
+    function crumbs(items){
+      var html='<div class="breadcrumbs">';
+      var i,item;
+      for(i=0;i<items.length;i++){
+        item=items[i];
+        if(i)html+='<span class="crumb-sep">&rsaquo;</span>';
+        html+='<button type="button" class="crumb '+(item.action?'':'current')+'"'+(item.action?' data-crumb="'+attr(item.action)+'"':'')+'>'+esc(item.label)+'</button>';
+      }
+      html+='</div>';
+      return html;
+    }
+
+    document.addEventListener('click',function(event){
+      var node=event.target;
+      while(node&&node!==document&&!node.getAttribute('data-crumb'))node=node.parentNode;
+      if(!node||node===document)return;
+      var action=node.getAttribute('data-crumb');
+      if(action==='trainerRoot')renderTrainerBranches();
+      else if(action==='classRoot')renderClassBranches();
+      else if(action==='classBranch')renderClassTrainerGrid(state.context.branchId);
+      else if(action==='materialRoot')renderMaterialMonths();
+      else if(action==='materialMonth')renderMaterialMonths(state.context.year);
+      else if(action==='materialWeek')renderMaterialWeeks(state.context.year,state.context.month);
+      else if(action==='printRoot')renderPrintMonths();
+      else if(action==='printMonth')renderPrintMonths(state.context.year);
+      else if(action==='printWeek')renderPrintWeeks(state.context.year,state.context.month);
+      else if(action==='printBranch')renderPrintBranches(state.context.year,state.context.month,state.context.week);
+    });
+
+    function yearTabs(years,active,kind){
+      var html='<div class="year-tabs">',i;
+      for(i=0;i<years.length;i++){
+        html+='<button type="button" class="year-tab '+(Number(years[i])===Number(active)?'active':'')+'" data-year-kind="'+attr(kind)+'" data-year="'+attr(years[i])+'">'+esc(years[i])+'</button>';
+      }
+      return html+'</div>';
+    }
+    function bindYearTabs(kind,handler){
+      var buttons=document.querySelectorAll('[data-year-kind="'+kind+'"]');
+      var i;
+      for(i=0;i<buttons.length;i++)buttons[i].onclick=function(){handler(Number(this.getAttribute('data-year')));};
+    }
+
+    function displayValue(field,value){
+      if(field.name==='Password')return '******';
+      if(value===true)return 'Active';
+      if(value===false)return 'Inactive';
+      return value===null||value===undefined?'':value;
+    }
+    function cellHtml(field,value){
+      var display=displayValue(field,value);
+      if(field.type==='url'&&isHttpUrl(display))return '<a class="link" href="'+attr(display)+'" target="_blank" rel="noopener noreferrer">Open link</a>';
+      if((field.name==='Active'||field.name==='Status')&&display)return statusBadge(display);
+      return esc(display===''?'-':display);
+    }
+    function tableAndCards(rows,fields){
+      var table='<div class="table-wrap generic-desktop"><table><thead><tr>',i,j,row;
+      for(i=0;i<fields.length;i++)table+='<th>'+esc(fields[i].label)+'</th>';
+      table+='<th>Actions</th></tr></thead><tbody>';
+      for(i=0;i<rows.length;i++){
+        row=rows[i];table+='<tr>';
+        for(j=0;j<fields.length;j++)table+='<td>'+cellHtml(fields[j],row[fields[j].name])+'</td>';
+        table+='<td class="actions"><button class="btn soft btn-sm edit" data-key="'+attr(row.__key)+'" type="button">Edit</button> '+
+          '<button class="btn danger btn-sm del" data-key="'+attr(row.__key)+'" type="button">Delete</button></td></tr>';
+      }
+      table+='</tbody></table></div><div class="record-grid generic-mobile" style="margin-top:12px">';
+      for(i=0;i<rows.length;i++){
+        row=rows[i];table+='<article class="card record-card">';
+        for(j=0;j<fields.length&&j<5;j++){
+          if(j===0)table+='<div class="record-title">'+cellHtml(fields[j],row[fields[j].name])+'</div>';
+          else table+='<div class="record-line"><b>'+esc(fields[j].label)+'</b><span>'+cellHtml(fields[j],row[fields[j].name])+'</span></div>';
+        }
+        table+='<div class="record-actions"><button class="btn soft btn-sm edit" data-key="'+attr(row.__key)+'" type="button">Edit</button>'+
+          '<button class="btn danger btn-sm del" data-key="'+attr(row.__key)+'" type="button">Delete</button></div></article>';
+      }
+      return table+'</div>';
+    }
+
+    document.addEventListener('DOMContentLoaded',loadBootstrap);
+  })();
+  </script>
+</body>
+</html>
