@@ -114,27 +114,25 @@
   </style>
 <script>
 /* ============================================================
- * KIP GITHUB -> GOOGLE APPS SCRIPT doPost CLIENT
- * Edit only this URL after deploying Code.gs as a Web App.
+ * KIP GITHUB -> GOOGLE APPS SCRIPT RPC CLIENT — repaired v2
  *
- * Transport:
- * GitHub page -> hidden HTML form POST -> GAS doPost(e)
- * -> hidden iframe response -> postMessage back to this page.
- * No CORS/XHR dependency and no additional frontend files.
+ * GitHub Pages cannot use native google.script.run directly.
+ * This compatibility client POSTs to the GAS Web App in a hidden iframe,
+ * then receives the result through window.postMessage.
  * ============================================================ */
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5gu1y5ePPs9_XkWxJQ9FQoc6yu30kRaSzgO-nwIYDoALA1wgvOcK7/exec';
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzsz4qbWwgqbnURyM3MLQMw2ayMYJrUe1kj2zfEepR7Oeo0rrfSH_H1K9fql4XAMJuw/exec';
 
-(function installKipGasDoPostClient(){
+(function installKipGasRpcClient(){
   'use strict';
 
-  const REQUEST_TIMEOUT_MS = 60000;
+  const REQUEST_TIMEOUT_MS = 30000;
   const pending = new Map();
   let sequence = 0;
 
   function backendUrl(){
     const value = String(GAS_WEB_APP_URL || '').trim();
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec(?:\?.*)?$/i.test(value)) {
-      throw new Error('Set GAS_WEB_APP_URL to your deployed Apps Script /exec URL.');
+      throw new Error('GAS_WEB_APP_URL is not a valid deployed Apps Script /exec URL.');
     }
     return value.split('?')[0];
   }
@@ -191,7 +189,7 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
 
     const frame = document.createElement('iframe');
     frame.name = frameName;
-    frame.title = 'KIP GAS Request';
+    frame.title = 'KIP Apps Script request';
     frame.setAttribute('aria-hidden', 'true');
     frame.tabIndex = -1;
     frame.style.cssText = 'position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;border:0;opacity:0;pointer-events:none;';
@@ -201,6 +199,7 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
     form.action = url;
     form.target = frameName;
     form.acceptCharset = 'UTF-8';
+    form.enctype = 'application/x-www-form-urlencoded';
     form.style.display = 'none';
     form.appendChild(hiddenInput('kipRpc', '1'));
     form.appendChild(hiddenInput('method', String(method || '')));
@@ -214,9 +213,8 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
       if (!task) return;
       pending.delete(id);
       cleanupTask(task);
-      const error = new Error(
-        'Apps Script request timed out. Check GAS_WEB_APP_URL, the latest Web App deployment, and its access permission.'
-      );
+      const error = new Error('Apps Script request timed out. Confirm the /exec deployment is current and accessible to the intended users.');
+      error.name = 'KipRpcTimeoutError';
       if (typeof task.failure === 'function') task.failure(error, task.userObject);
     }, REQUEST_TIMEOUT_MS);
 
@@ -227,7 +225,6 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
       mount.appendChild(frame);
       mount.appendChild(form);
       form.submit();
-      // The form itself is no longer needed after the browser has submitted it.
       setTimeout(() => {
         if (form.parentNode) form.parentNode.removeChild(form);
       }, 0);
@@ -242,25 +239,21 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
     return new Proxy({}, {
       get(_target, property){
         if (property === 'withSuccessHandler') {
-          return function(handler){ return createRunner(handler, failure, userObject); };
+          return handler => createRunner(handler, failure, userObject);
         }
         if (property === 'withFailureHandler') {
-          return function(handler){ return createRunner(success, handler, userObject); };
+          return handler => createRunner(success, handler, userObject);
         }
         if (property === 'withUserObject') {
-          return function(value){ return createRunner(success, failure, value); };
+          return value => createRunner(success, failure, value);
         }
         if (property === 'then') return undefined;
         return function(){
           rpc(
             String(property),
             Array.prototype.slice.call(arguments),
-            function(result){
-              if (typeof success === 'function') success(result, userObject);
-            },
-            function(error){
-              if (typeof failure === 'function') failure(error, userObject);
-            },
+            result => { if (typeof success === 'function') success(result, userObject); },
+            error => { if (typeof failure === 'function') failure(error, userObject); },
             userObject
           );
         };
@@ -287,25 +280,18 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
     if (!isTrustedGasMessageOrigin(event.origin)) return;
 
     const task = pending.get(String(data.id));
-    if (!task) return;
-    if (String(data.nonce) !== task.nonce) return;
+    if (!task || String(data.nonce) !== task.nonce) return;
 
-    /*
-     * HtmlService renders the returned doPost page inside Google's own
-     * sandbox iframe. Therefore event.source is the INNER Apps Script
-     * sandbox window, not necessarily the outer iframe we created.
-     * Request id + cryptographic nonce + trusted Google origin are the
-     * correlation/security checks here.
-     */
     pending.delete(task.id);
     cleanupTask(task);
 
     if (data.ok) {
       if (typeof task.success === 'function') task.success(data.result, task.userObject);
-    } else {
-      const error = normalizeError(data.error || 'Apps Script request failed.');
-      if (typeof task.failure === 'function') task.failure(error, task.userObject);
+      return;
     }
+
+    const error = normalizeError(data.error || 'Apps Script request failed.');
+    if (typeof task.failure === 'function') task.failure(error, task.userObject);
   });
 
   window.google = window.google || {};
@@ -313,6 +299,11 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
   Object.defineProperty(window.google.script, 'run', {
     configurable: true,
     get(){ return createRunner(null, null, null); }
+  });
+
+  window.KIP_RPC = Object.freeze({
+    backendUrl: () => backendUrl(),
+    pendingCount: () => pending.size
   });
 })();
 </script>
@@ -329,7 +320,16 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRfaqGTZX0ohC5
 
   <script>
     const SERVER_APP_URL = new URL('index.html', window.location.href).href.split('?')[0];
-    const INITIAL_TOKEN = new URLSearchParams(window.location.search).get('token') || (()=>{try{return localStorage.getItem('kipStaffToken')||sessionStorage.getItem('kipStaffToken')||'';}catch(_){return'';}})();
+    const tokenQuery = new URLSearchParams(window.location.search);
+    const legacyQueryToken = tokenQuery.get('token') || '';
+    const INITIAL_TOKEN = (()=>{try{return localStorage.getItem('kipStaffToken')||sessionStorage.getItem('kipStaffToken')||legacyQueryToken||'';}catch(_){return legacyQueryToken;}})();
+    if (legacyQueryToken) {
+      try {
+        tokenQuery.delete('token');
+        const cleanQuery = tokenQuery.toString();
+        history.replaceState(null,'',window.location.pathname+(cleanQuery?'?'+cleanQuery:'')+window.location.hash);
+      } catch (_) {}
+    }
     const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
     const state = { token:INITIAL_TOKEN, data:null, selectedLevelId:'', original:{}, dirty:false };
 
